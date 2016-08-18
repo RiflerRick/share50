@@ -28,6 +28,18 @@ var connection=mysql.createConnection({
   password:'share50_123',
   database:'share50'
 });
+
+connection.connect(function(err){
+  if(err)
+  {
+    console.error('error connecting to the database: '+err.stack);
+    //this will also show the error.
+  }
+
+  else {
+      console.log("connection established successfully");
+  }
+});
 /*
 This is the database integration part of the application.
 host is by default localhost, username and password must match with those running on the server and database must be defined.
@@ -91,6 +103,9 @@ app.use(bodyParser());
 This is the middleware that will be required for the purpose of form handling and post request handling.
 */
 
+
+
+
 app.get('/',function(req,res){
   /*console.log('Cookies:',req.cookies);
   now this is important here because if we get a session that had been set already then we must redirect the user to the index page
@@ -100,23 +115,38 @@ app.get('/',function(req,res){
   if(req.session&&req.session.user)//this simply checks if the session exists...
   {
     console.log("index page rendered...");
-    connection.connect(function(err){
-      if(err)
-      {
-        console.error('error connecting to the database: '+err.stack);
-        //this will also show the error.
-      }
 
-      else {
-          console.log("connection established successfully");
-      }
-    });
   }
   else
   {
     console.log("landing page being rendered");
     res.render('landing');
   }
+});
+
+app.get('/emailCheck',function(req,res){
+  //this function is for ajax checking whether the
+  var jsonRes;
+  console.log("ajax emailCheck request made.");
+  var email=req.query.email;
+
+      connection.query('SELECT * FROM users WHERE email=?',[email],function(err,results,fields){
+        console.log("no of keys in results:"+Object.keys(results).length);
+        if(Object.keys(results).length>0){
+          //turns out that results is an object that has key value pairs here.
+
+          res.send(JSON.stringify({emailFound:1}));//send a json response
+          console.log("email found");}
+          else {
+
+            console.log("no emails found");
+            res.send(JSON.stringify({emailFound:0}));//send a json response
+
+          }
+
+      });
+
+
 });
 
 app.post('/signIn',function(req,res){
@@ -129,19 +159,15 @@ app.post('/signUp',function(req,res){
   console.log("sign up request made");
   //if the user signs up, we need to make sure that he has registered...
   //connection to the database will be made here and we will register the user...
-  connection.connect(function(err){
-    if(err)
-    {
-      console.error('error connecting to the database: '+err.stack);
-      //this will also show the error.
-    }
 
-    else {
         console.log("connection established successfully");
         var firstName=escape(req.body.firstName);
         var lastName=escape(req.body.lastName);
         var name=firstName+" "+lastName;
         var email=escape(req.body.email);
+
+
+
         var date=req.body.date;
         // console.log('date:'+date);
         var month=req.body.month;
@@ -177,8 +203,7 @@ app.post('/signUp',function(req,res){
           }
         });
         //for info on queries follow:https://github.com/mysqljs/mysql#performing-queries*/
-    }
-  });
+
 
 });
 

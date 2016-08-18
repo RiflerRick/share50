@@ -137,7 +137,34 @@ document.getElementById("emailAddress").onblur=function(){//event triggered when
     $("#emailAddress").tooltip("show");
   }
   else {
-    emailCheck=1;
+    //we also need to check if the email address already exists and if so then we need to tell the user that the email address is
+    //already registered
+
+    /*
+    This is super simple using the concept of ajax.
+    */
+    var url="emailCheck?email="+document.getElementById('emailAddress').value;
+    //alert(url);
+    $.getJSON(url,function(data){//this function will be used to send data to the server asynchronously, hence ajax
+      //here data will be delibeartely a 1 or 0, 1 if email is found and 0 if not found...
+      //data is the whole json object we need to get the emailFound key of that.
+
+      //this function is
+
+      //alert("json rec: "+data.emailFound);
+      if(data.emailFound==1)
+      {
+        //alert("voila!!!exists"); error checking...
+        email.setAttribute("title","email address exists");
+        $("#emailAddress").tooltip("show");
+      }
+      else {
+        //alert("voila!!!no such email; found!!!"); error checking...
+        emailCheck=1;
+      }
+
+    });
+
   }
   return false;
 
