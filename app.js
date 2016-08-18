@@ -11,7 +11,7 @@ The package.json file can be created using the command 'npm init' in our node co
 var express=require('express');//includes express module.
 var path=require('path');//includes path modules
 // var session=require('express-session');//this is actually for the session storage for the user.
-var session=require('client-sessions');//this is using the mozilla library or module called client-sessions.
+var session=require('express-session');//this is using the mozilla library or module called express-sessions.
 var mysql=require('mysql');
 var escape=require('html-escape');//this is just for escaping special characters.
 var passHash=require('password-hash');//this module will be required for hashing the password into the table.
@@ -149,6 +149,20 @@ app.get('/emailCheck',function(req,res){
 
 });
 
+
+app.get('/login',function(req,res){
+  if(req.session.email)
+  {
+    console.log("session found");
+    res.render('index');
+  }
+  else
+  {
+    console.log("no session found");
+    res.render('landing');
+  }
+});
+
 app.post('/signIn',function(req,res){
   //now if the user signs in successfully then we need to check from the database whether the user exists or not...
   console.log("sign in request made");
@@ -189,6 +203,11 @@ app.post('/signUp',function(req,res){
 
         console.log("password is:"+password);
         connection.query('INSERT INTO users (name,email,dob,gender,password) VALUES (?,?,?,?,?)',[name,email,dob,gender,password],function(err,results,fields){
+          var id;
+          connection.query('SELECT * FROM users WHERE email=?',[email],function(err,results,fields){
+            id=results[0].uid;//getting the id of the user and setting the user accordingly...
+            console.log("user id retrieved from db:"+id);
+          });
           //results will contain the results of the query.
           //fields will contain the information about the returned results.
           if(err)
@@ -199,12 +218,36 @@ app.post('/signUp',function(req,res){
             {
               console.log("successfully inserted into database");
               //after we get the details inside the database we need to start a session and redirect the user to the index.ejs view.
+              req.session.email=email;
+              console.log("successfully added sessions and started it.");
+              res.render('index');
             }
           }
         });
         //for info on queries follow:https://github.com/mysqljs/mysql#performing-queries*/
 
 
+});
+
+app.post('/logout',function(req,res){
+  if(req.session.email)
+  {
+    console.log("session was found with user:"+req.session.email);
+    req.session.destroy(function(err){//used for destroying sessions...
+      if(err){
+        console.log("could not destroy the session");
+        res.render('landing');
+      }
+      else {
+        console.log("session was destroyed");
+        res.render('landing');
+      }
+    });
+  }
+  else {
+    console.log("session was not found");
+    res.render('landing');
+  }
 });
 
 /*
