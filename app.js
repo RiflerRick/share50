@@ -89,8 +89,11 @@ app.use(session({
   activeDuration:5*60*1000
 }));
 
+
+
 //this is the middleware that sets up cookies for the user(client side).
 /*
+genid it is a new generated session id
 cookieName is the name given to every cookie.
 secret is a string that is used to encrypt the cookie. meanwhile the library internally will encrypt and decrypt the secret so that the
 cookie remains safe in the user's browser.
@@ -150,7 +153,7 @@ app.get('/emailCheck',function(req,res){
 });
 
 
-app.get('/login',function(req,res){
+app.get('/signIn',function(req,res){
   if(req.session.email)
   {
     console.log("session found");
@@ -158,6 +161,18 @@ app.get('/login',function(req,res){
   }
   else
   {
+    console.log("no session found");
+    res.render('landing');
+  }
+});
+
+app.get('/signUp',function(req,res){
+  if(req.session.email)
+  {
+    console.log("session found");
+    res.render('index');
+  }
+  else {
     console.log("no session found");
     res.render('landing');
   }

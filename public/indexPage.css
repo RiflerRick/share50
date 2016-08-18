@@ -51,7 +51,8 @@
   color:white;
   font-size: 10pt;
   text-align: center;
-  background-color:#050514;
+  /*background-color:#050514;*/
+  background-color: #1c8ce9;
   height:75px;
 }
 #githubLogo
@@ -60,8 +61,8 @@
   height:20px;
 }
 .navbar-default{
-  background-color: #050514;
-  border-color:  #050514;
+  background-color: #1c8ce9;
+  border-color:  #1c8ce9;
 }
 .navbar-brand
 {
