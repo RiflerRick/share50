@@ -10,6 +10,8 @@ The package.json file can be created using the command 'npm init' in our node co
 */
 var express=require('express');//includes express module.
 var path=require('path');//includes path modules
+var helper=require('helper.js');//custom directory for a few helper functions.
+var chalk=require('chalk');
 // var session=require('express-session');//this is actually for the session storage for the user.
 var session=require('express-session');//this is using the mozilla library or module called express-sessions.
 var mysql=require('mysql');
@@ -115,34 +117,45 @@ app.get('/',function(req,res){
   and not the landing page.
   If however the session data does not exist we can redirect the user to the landing page.
   */
-  if(req.session&&req.session.user)//this simply checks if the session exists...
+  var userId;
+  if(req.session&&req.session.email)//this simply checks if the session exists...
   {
-    console.log("index page rendered...");
+    console.log(chalk.blue("/ GET:session found"));//DEBUG
 
+    //so we need to pass both the email and the id to index the user
+    connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
+      userId=results[0].uid;
+    });
+    var param={};
+    param["email"]=req.session.email;
+    param["uid"]=userId;
+    helper.renderPage(res,connection,'index',param);
+    console.log(chalk.blue("/ GET:index page rendered..."));
   }
   else
   {
-    console.log("landing page being rendered");
+    console.log(chalk.blue("/ GET:no session found"));//DEBUG
+    console.log(chalk.blue("/ GET:landing page being rendered"));
     res.render('landing');
   }
 });
 
 app.get('/emailCheck',function(req,res){
-  //this function is for ajax checking whether the
+  //this function is for ajax checking whether the email that was entered by the user actually exists
   var jsonRes;
-  console.log("ajax emailCheck request made.");
+  console.log(chalk.blue("/emailCheck GET:ajax emailCheck request made."));//DEBUG
   var email=req.query.email;
 
       connection.query('SELECT * FROM users WHERE email=?',[email],function(err,results,fields){
-        console.log("no of keys in results:"+Object.keys(results).length);
         if(Object.keys(results).length>0){
           //turns out that results is an object that has key value pairs here.
-
+          
           res.send(JSON.stringify({emailFound:1}));//send a json response
-          console.log("email found");}
+          console.log(chalk.green("/emailCheck GET:email found"));//DEBUG
+        }
           else {
 
-            console.log("no emails found");
+            console.log(chalk.green("/emailCheck GET:no emails found"));//DEBUG
             res.send(JSON.stringify({emailFound:0}));//send a json response
 
           }
@@ -152,50 +165,89 @@ app.get('/emailCheck',function(req,res){
 
 });
 
-
-app.get('/signIn',function(req,res){
-  if(req.session.email)
-  {
-    console.log("session found");
-    res.render('index');
-  }
-  else
-  {
-    console.log("no session found");
-    res.render('landing');
-  }
-});
-
-app.get('/signUp',function(req,res){
-  if(req.session.email)
-  {
-    console.log("session found");
-    res.render('index');
-  }
-  else {
-    console.log("no session found");
-    res.render('landing');
-  }
-});
+/*function renderPage(res,pageName,param)//in js we do not need to give data type of formal parameters in functions
+{
+  res.render('header',{page:pageName});
+  return;
+}*/
 
 app.post('/signIn',function(req,res){
   //now if the user signs in successfully then we need to check from the database whether the user exists or not...
-  console.log("sign in request made");
+  console.log(chalk.blue("/signIn POST:sign in request made"));//DEBUG
+  var userId;
+  if(req.session && req.session.email)
+  {
+    console.log(chalk.blue("/signIn POST:session exists"));//DEBUG
+    connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
+      userId=results[0].uid;
+    });
+    var param={};
+    param["email"]=req.session.email;
+    param["uid"]=userId;
+    helper.renderPage(res,connection,'index',param);
+  }
+  else {
+    console.log(chalk.blue("/signIn POST:session does not exist"));//DEBUG
+    email=escape(req.body.email);
+    password=escape(req.body.password);
+    connection.query("SELECT * FROM users WHERE email=?",[email],function(err,results,fields){
+      if(err)
+      {
+        console.log(chalk.red("/signIn POST:could not run query:"+err.stack));//DEBUG
+      }
+      else {
+        console.log(chalk.green("/signIn POST:query successful"));//DEBUG
+        if(passHash.verify(password,results[0].password))
+        {
+          //start a session and render index page
+          console.log(chalk.green("/signIn POST:login successful, session started"));//DEBUG
+          req.session.email=email;
+          var param={};
+          param["email"]=email;
+          param["uid"]=results[0].uid;
+          helper.renderPage(res,connection,'index',param);
+        }
+        else {
+          console.log(chalk.red("/signIn POST:login unsuccessful, rendered loginError page"));//DEBUG
+          render('loginError');//render a page called log in error
+        }
+      }
+    });
+  }
 
 });
 
+
+
 app.post('/signUp',function(req,res){
-  console.log("sign up request made");
+
+  console.log("/signUp POST:sign up request made");
+  var userId;
+  if(req.session&&req.session.email)//if session exits.
+  {
+    console.log(chalk.red("/signUp POST:session found"));//DEBUG
+    connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
+      userId=results[0].uid;
+    });
+    var param={};
+    param["email"]=req.session.email;
+    param["uid"]=userId;
+    helper.renderPage(res,connection,'index',param);
+    console.log(chalk.red("/signUp POST:index page rendered"));//DEBUG
+  }
+  else {
+    //error checking
+    console.log(chalk.green("/signUp POST:signUp post request made"));//DEBUG
+  }
+
   //if the user signs up, we need to make sure that he has registered...
   //connection to the database will be made here and we will register the user...
 
-        console.log("connection established successfully");
+        // console.log("connection established successfully");
         var firstName=escape(req.body.firstName);
         var lastName=escape(req.body.lastName);
         var name=firstName+" "+lastName;
         var email=escape(req.body.email);
-
-
 
         var date=req.body.date;
         // console.log('date:'+date);
@@ -203,40 +255,40 @@ app.post('/signUp',function(req,res){
         // console.log('month:'+month);
         var year=req.body.year;
 
-
         var dob=year.toString()+"-"+month.toString()+"-"+date.toString();
         //from reading the documentation of mysql i know that date accpets yyyy-mm-dd as a string
-
         var gender=req.body.gender;
-
         var password;
         var rawPass=req.body.checkPass;
         // console.log("email is: "+email);
         // console.log("dob: "+dob);
         // console.log("password given by user: "+rawPass);
         password=passHash.generate(rawPass);
-
-        console.log("password is:"+password);
         connection.query('INSERT INTO users (name,email,dob,gender,password) VALUES (?,?,?,?,?)',[name,email,dob,gender,password],function(err,results,fields){
           var id;
           connection.query('SELECT * FROM users WHERE email=?',[email],function(err,results,fields){
             id=results[0].uid;//getting the id of the user and setting the user accordingly...
-            console.log("user id retrieved from db:"+id);
+            console.log(chalk.blue("/signUp POST:user id retrieved from db:"+id));//DEBUG
           });
           //results will contain the results of the query.
           //fields will contain the information about the returned results.
           if(err)
           {
-            console.log("could not insert into database",err.stack);
+            console.log(chalk.red("/signUp POST:could not insert into database",err.stack));//DEBUG
           }
           else {
-            {
-              console.log("successfully inserted into database");
+
+              console.log(chalk.green("/signUp POST:successfully inserted into database"));//DEBUG
               //after we get the details inside the database we need to start a session and redirect the user to the index.ejs view.
               req.session.email=email;
-              console.log("successfully added sessions and started it.");
-              res.render('index');
-            }
+              console.log(chalk.green("/signUp POST:successfully added sessions and started it."));//DEBUG
+              var param={};
+              param["email"]=email;
+              param["uid"]=id;
+              helper.renderPage(res,connection,'index',param);//this function defined in helper.js actually will be used for rendering the index page
+              //of the user with the account email.
+              // res.render('index');
+
           }
         });
         //for info on queries follow:https://github.com/mysqljs/mysql#performing-queries*/
@@ -244,26 +296,30 @@ app.post('/signUp',function(req,res){
 
 });
 
-app.post('/logout',function(req,res){
-  if(req.session.email)
+
+
+app.get('/logout',function(req,res){
+  if(req.session&&req.session.email)
   {
-    console.log("session was found with user:"+req.session.email);
+    console.log(chalk.blue("/logout GET:session was found with user:"+req.session.email));//DEBUG
     req.session.destroy(function(err){//used for destroying sessions...
       if(err){
-        console.log("could not destroy the session");
+        console.log(chalk.red("/logout GET:could not destroy the session"));//DEBUG
         res.render('landing');
       }
       else {
-        console.log("session was destroyed");
+        console.log(chalk.green("/logout GET:session was destroyed"));//DEBUG
         res.render('landing');
       }
     });
   }
   else {
-    console.log("session was not found");
+    console.log(chalk.red("/logout GET:session was not found"));//DEBUG
     res.render('landing');
   }
 });
+
+
 
 /*
 Another important idea here is the use of sessions and how to store them effectively...
