@@ -24,6 +24,9 @@ var server=app.listen(1337,function(){
   console.log("listening at port 1337");
 });//listening at port 1337
 
+var io=require('socket.io').listen(server);//this is essentially gonna be the socket.io library that we are gonna use for real time form feed
+//listen to the same server for the web socket connection
+
 var connection=mysql.createConnection({
   host:'localhost',
   user:'riflerRick',
@@ -129,7 +132,7 @@ app.get('/',function(req,res){
     var param={};
     param["email"]=req.session.email;
     param["uid"]=userId;
-    helper.renderPage(res,connection,'index',param);
+    helper.renderPage(app,res,io,connection,'index',param);
     console.log(chalk.blue("/ GET:index page rendered..."));
   }
   else
@@ -149,7 +152,7 @@ app.get('/emailCheck',function(req,res){
       connection.query('SELECT * FROM users WHERE email=?',[email],function(err,results,fields){
         if(Object.keys(results).length>0){
           //turns out that results is an object that has key value pairs here.
-          
+
           res.send(JSON.stringify({emailFound:1}));//send a json response
           console.log(chalk.green("/emailCheck GET:email found"));//DEBUG
         }
@@ -163,6 +166,12 @@ app.get('/emailCheck',function(req,res){
       });
 
 
+});
+
+
+app.get("/wellContentRequest",function(req,res){
+  console.log(chalk.green("/wellContentRequest GET:ajax request received "));
+  res.json({testVariable:'now you see me!!!'});
 });
 
 /*function renderPage(res,pageName,param)//in js we do not need to give data type of formal parameters in functions
@@ -184,7 +193,7 @@ app.post('/signIn',function(req,res){
     var param={};
     param["email"]=req.session.email;
     param["uid"]=userId;
-    helper.renderPage(res,connection,'index',param);
+    helper.renderPage(app,res,io,connection,'index',param);
   }
   else {
     console.log(chalk.blue("/signIn POST:session does not exist"));//DEBUG
@@ -205,7 +214,7 @@ app.post('/signIn',function(req,res){
           var param={};
           param["email"]=email;
           param["uid"]=results[0].uid;
-          helper.renderPage(res,connection,'index',param);
+          helper.renderPage(app,res,io,connection,'index',param);
         }
         else {
           console.log(chalk.red("/signIn POST:login unsuccessful, rendered loginError page"));//DEBUG
@@ -232,7 +241,7 @@ app.post('/signUp',function(req,res){
     var param={};
     param["email"]=req.session.email;
     param["uid"]=userId;
-    helper.renderPage(res,connection,'index',param);
+    helper.renderPage(app,res,io,connection,'index',param);
     console.log(chalk.red("/signUp POST:index page rendered"));//DEBUG
   }
   else {
@@ -285,7 +294,7 @@ app.post('/signUp',function(req,res){
               var param={};
               param["email"]=email;
               param["uid"]=id;
-              helper.renderPage(res,connection,'index',param);//this function defined in helper.js actually will be used for rendering the index page
+              helper.renderPage(app,res,io,connection,'index',param);//this function defined in helper.js actually will be used for rendering the index page
               //of the user with the account email.
               // res.render('index');
 
