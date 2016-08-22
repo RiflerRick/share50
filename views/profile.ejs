@@ -1,0 +1,25 @@
+<% include initials %>
+<title id="titleValue"><%= page %></title>
+<link rel="stylesheet" href="profile.css">
+</head>
+<!-- one important factor here is that you cannot -->
+<% include header %>
+<body>
+  <!--  here all the juicy parts will actually happen-->
+  <div class="panel panel-default" id="dynComponent">
+    <div class="panel-body">
+      <div class="well" id="wellContent">
+
+        <h4><span class="label label-default">Name:</span><label id="name" class="label label-info" > <%= name %></label> </h4>
+        <h4><span class="label label-default">Email:</span><label id="email" class="label label-info" > <%= email %></label></h4>
+        <h4><span class="label label-default">Birthday:</span><label id="dob" class="label label-info" > <%= dob %></label></h4>
+        <h4><span class="label label-default">Tours:</span><label id="tours" class="label label-info" > <%= tours %></label></h4>
+        <h4><span class="label label-default">Parties:</span><label id="parties" class="label label-info" > <%= parties %></label></h4>
+        <h4><span class="label label-default">Friends:</span><label id="friends" class="label label-info" > <%= friends %></label></h4>
+      </div>
+    </div>
+  </div>
+
+</body>
+<% include footer %>
+</html>

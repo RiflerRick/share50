@@ -9,6 +9,7 @@ file (see documentation of node for that) automatically or manually. After this 
 The package.json file can be created using the command 'npm init' in our node command line.
 */
 var express=require('express');//includes express module.
+var fs=require('fs');
 var path=require('path');//includes path modules
 var helper=require('helper.js');//custom directory for a few helper functions.
 var chalk=require('chalk');
@@ -111,7 +112,22 @@ app.use(bodyParser());
 This is the middleware that will be required for the purpose of form handling and post request handling.
 */
 
+function startSession(req,email,results)
+{
+  req.session.email=email;
+  var param={};
+  param["email"]=email;
+  param["uid"]=results[0].uid;
+  return param;
+}
 
+function setParam(email,userId)
+{
+  var param={};
+  param["email"]=email;
+  param["uid"]=userId;
+  return param;
+}
 
 
 app.get('/',function(req,res){
@@ -129,10 +145,8 @@ app.get('/',function(req,res){
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
       userId=results[0].uid;
     });
-    var param={};
-    param["email"]=req.session.email;
-    param["uid"]=userId;
-    helper.renderPage(app,res,io,connection,'index',param);
+    var param=setParam(req.session.email,userId);
+    helper.renderPage(app,fs,res,io,connection,'index',param);
     console.log(chalk.blue("/ GET:index page rendered..."));
   }
   else
@@ -165,13 +179,24 @@ app.get('/emailCheck',function(req,res){
 
       });
 
-
 });
 
 
-app.get("/wellContentRequest",function(req,res){
+app.get("/indexRequest",function(req,res){
   console.log(chalk.green("/wellContentRequest GET:ajax request received "));
-  res.json({testVariable:'now you see me!!!'});
+  if(req.session.email&&req.session)
+  {
+    connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+      var uid=results[0].uid;
+    });
+    res.json({uid:uid});
+    console.log(chalk.green('/wellContentRequest GET:response sent'));//this is just sending the uid but i can potentially send many more
+    //things like whole data based on what the friends of the person are and what photos and videos the friends have shared
+  }
+  else {
+    console.log(chalk.red('/wellContentRequest GET:no session found'));
+  }
+
 });
 
 /*function renderPage(res,pageName,param)//in js we do not need to give data type of formal parameters in functions
@@ -190,10 +215,8 @@ app.post('/signIn',function(req,res){
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
       userId=results[0].uid;
     });
-    var param={};
-    param["email"]=req.session.email;
-    param["uid"]=userId;
-    helper.renderPage(app,res,io,connection,'index',param);
+    var param=setParam(req.session.email,userId);
+    helper.renderPage(app,fs,res,io,connection,'index',param);
   }
   else {
     console.log(chalk.blue("/signIn POST:session does not exist"));//DEBUG
@@ -210,11 +233,8 @@ app.post('/signIn',function(req,res){
         {
           //start a session and render index page
           console.log(chalk.green("/signIn POST:login successful, session started"));//DEBUG
-          req.session.email=email;
-          var param={};
-          param["email"]=email;
-          param["uid"]=results[0].uid;
-          helper.renderPage(app,res,io,connection,'index',param);
+          var param=startSession(req,email,results);//custom function
+          helper.renderPage(app,fs,res,io,connection,'index',param);
         }
         else {
           console.log(chalk.red("/signIn POST:login unsuccessful, rendered loginError page"));//DEBUG
@@ -223,6 +243,7 @@ app.post('/signIn',function(req,res){
       }
     });
   }
+  return false;
 
 });
 
@@ -238,10 +259,8 @@ app.post('/signUp',function(req,res){
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
       userId=results[0].uid;
     });
-    var param={};
-    param["email"]=req.session.email;
-    param["uid"]=userId;
-    helper.renderPage(app,res,io,connection,'index',param);
+    var param=setParam(req.session.email,userId);
+    helper.renderPage(app,fs,res,io,connection,'index',param);
     console.log(chalk.red("/signUp POST:index page rendered"));//DEBUG
   }
   else {
@@ -289,23 +308,81 @@ app.post('/signUp',function(req,res){
 
               console.log(chalk.green("/signUp POST:successfully inserted into database"));//DEBUG
               //after we get the details inside the database we need to start a session and redirect the user to the index.ejs view.
-              req.session.email=email;
+
               console.log(chalk.green("/signUp POST:successfully added sessions and started it."));//DEBUG
-              var param={};
-              param["email"]=email;
-              param["uid"]=id;
-              helper.renderPage(app,res,io,connection,'index',param);//this function defined in helper.js actually will be used for rendering the index page
+              var param=startSession(req,email,results);
+              helper.renderPage(app,fs,res,io,connection,'index',param);//this function defined in helper.js actually will be used for rendering the index page
               //of the user with the account email.
               // res.render('index');
 
           }
         });
         //for info on queries follow:https://github.com/mysqljs/mysql#performing-queries*/
-
+        return false;
 
 });
 
+app.get('/profile',function(req,res){
+  if(req.session.email&&req.session)
+  {
+    var param={};
+    // var name;
+      console.log(chalk.green("/profile GET:session found"));
+      var userId;
+      connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+        // console.log("inside profile name is:"+results[0].name);
+        param["name"]=results[0].name;
+        // console.log("inside profile now object is:"+param.name);
+        param["email"]=results[0].email;
+        param["dob"]=results[0].dob;
+        userId=results[0].uid;
+      });
+      connection.query("SELECT * FROM tours WHERE uid=?",[userId],function(err,results,fields){
+        if(Object.keys(results).length>0)
+        {
+          param["tourNum"]=Object.keys(results).length;
+        }
 
+        else {
+          //console.log(chalk.blue("tour number is 0"));
+          param["tourNum"]=0;
+        }
+      });
+      connection.query("SELECT * FROM party WHERE uid=?",[userId],function(err,results,fields){
+        if(Object.keys(results).length>0)
+        {
+          param["partyNum"]=Object.keys(results).length;
+        }
+        else {
+          param["partyNum"]=0;
+        }
+      });
+      connection.query("SELECT * FROM friends WHERE uid=?",[userId],function(err,results,fields){
+        if(Object.keys(results).length>0)
+        {
+          param["friends"]=Object.keys(results).length;
+        }
+        else {
+          param["friends"]=0;
+        }
+        helper.renderPage(app,fs,res,io,connection,'profile',param);
+      });
+      // helper.renderPage(app,fs,res,io,connection,'profile',param);
+  }
+  else {
+    console.log(chalk.red("/profile GET:session not found"));
+    res.render('landing');
+  }
+  return false;
+});
+
+app.get("/tours",function(req,res){
+
+});
+
+app.get("/parties",function(req,res){
+
+});
 
 app.get('/logout',function(req,res){
   if(req.session&&req.session.email)
@@ -326,6 +403,7 @@ app.get('/logout',function(req,res){
     console.log(chalk.red("/logout GET:session was not found"));//DEBUG
     res.render('landing');
   }
+  return false;
 });
 
 
