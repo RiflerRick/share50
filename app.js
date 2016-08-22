@@ -112,12 +112,12 @@ app.use(bodyParser());
 This is the middleware that will be required for the purpose of form handling and post request handling.
 */
 
-function startSession(req,email,results)
+function startSession(req,email,uid)
 {
   req.session.email=email;
   var param={};
   param["email"]=email;
-  param["uid"]=results[0].uid;
+  param["uid"]=uid;
   return param;
 }
 
@@ -221,7 +221,9 @@ app.post('/signIn',function(req,res){
   else {
     console.log(chalk.blue("/signIn POST:session does not exist"));//DEBUG
     email=escape(req.body.email);
+    // console.log(chalk.blue("/signIn POST:email received:"+email));
     password=escape(req.body.password);
+    // console.log(chalk.blue("/signIn POST:password received:"+password));
     connection.query("SELECT * FROM users WHERE email=?",[email],function(err,results,fields){
       if(err)
       {
@@ -233,12 +235,13 @@ app.post('/signIn',function(req,res){
         {
           //start a session and render index page
           console.log(chalk.green("/signIn POST:login successful, session started"));//DEBUG
-          var param=startSession(req,email,results);//custom function
+          var param=startSession(req,email,results[0].uid);//custom function
           helper.renderPage(app,fs,res,io,connection,'index',param);
         }
         else {
           console.log(chalk.red("/signIn POST:login unsuccessful, rendered loginError page"));//DEBUG
-          render('loginError');//render a page called log in error
+
+          res.render('loginError',{email:email});//render a page called log in error
         }
       }
     });
@@ -247,6 +250,32 @@ app.post('/signIn',function(req,res){
 
 });
 
+app.post("/signInError",function(req,res){
+  var email=escape(req.query.email);
+  var password=escape(req.body.password);
+  connection.query("SELECT * FROM users WHERE email=?",[email],function(err,results,fields){
+    if(err)
+    {
+      console.log(chalk.red("/signIn POST:could not run query:"+err.stack));//DEBUG
+    }
+    else {
+      console.log(chalk.green("/signIn POST:query successful"));//DEBUG
+      if(passHash.verify(password,results[0].password))
+      {
+        //start a session and render index page
+        console.log(chalk.green("/signIn POST:login successful, session started"));//DEBUG
+        var param=startSession(req,email,results[0].uid);//custom function
+        helper.renderPage(app,fs,res,io,connection,'index',param);
+      }
+      else {
+        console.log(chalk.red("/signIn POST:login unsuccessful, rendered loginError page"));//DEBUG
+
+        res.render('loginError',{email:email});//render a page called log in error
+      }
+    }
+  });
+  return false;
+});
 
 
 app.post('/signUp',function(req,res){
@@ -310,7 +339,7 @@ app.post('/signUp',function(req,res){
               //after we get the details inside the database we need to start a session and redirect the user to the index.ejs view.
 
               console.log(chalk.green("/signUp POST:successfully added sessions and started it."));//DEBUG
-              var param=startSession(req,email,results);
+              var param=startSession(req,email,id);
               helper.renderPage(app,fs,res,io,connection,'index',param);//this function defined in helper.js actually will be used for rendering the index page
               //of the user with the account email.
               // res.render('index');
@@ -377,11 +406,15 @@ app.get('/profile',function(req,res){
 });
 
 app.get("/tours",function(req,res){
-
+  var param={};
+  helper.renderPage(app,fs,res,io,connection,'tours',param);
+  return false;
 });
 
 app.get("/parties",function(req,res){
-
+  var param={};
+  helper.renderPage(app,fs,res,io,connection,'parties',param);
+  return false;
 });
 
 app.get('/logout',function(req,res){

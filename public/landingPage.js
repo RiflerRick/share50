@@ -206,7 +206,7 @@ document.getElementById("emailAddress").onblur=function(){//event triggered when
         $("#emailAddress").tooltip("show");
       }
       else {
-        alert("email not found");
+        // alert("email not found");
         //alert("voila!!!no such email; found!!!"); error checking...
         emailCheck=1;
       }
