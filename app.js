@@ -189,7 +189,9 @@ app.get("/indexRequest",function(req,res){
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
       var uid=results[0].uid;
       connection.query("SELECT * FROM friends WHERE uid=?",[uid],function(err,results,fields){
-        res.json({hasFriends:Object.keys(results).length});
+        var hasFriends=Object.keys(results).length;
+        // console.log("hasFriends:"+hasFriends);
+        res.json({hasFriends:hasFriends});
       });
     });
     console.log(chalk.green('/wellContentRequest GET:response sent'));//this is just sending the uid but i can potentially send many more
@@ -502,9 +504,14 @@ app.get("/dateSent",function(req,res){
   var month=req.query.month;
   var year=req.query.year;
   var userid;
-  var date=year+"-"+month+"-"day;
-  var page=req.query.page;
+  var date=year+"-"+month+"-"+day;
+  // console.log("date is:"+date);
+  var page=req.query.reqPage;
+  // console.log("page is:"+page);
   connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+    if(err)
+    console.log("error in selection itself");
+
     userid=results[0].uid;
     if(page=="tours")
     helper.toursCheck(res,userid,connection,date);

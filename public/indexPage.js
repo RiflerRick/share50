@@ -19,7 +19,8 @@ if(month<10) {
 If it is an event day then the yser will be able to upload photos for that day
 the date will be sent in the form of an ajax request.
 */
-var url="dateSent?page=tours,day="+day+",month="+month+",year="+year;
+// var page="tours";
+var url="dateSent?day="+day+"&month="+month+"&year="+year+"&reqPage=tours";
 $.getJSON(url,function(data){
   //so if the date is that of an event we make a few make a few changes to the navbar of the index page saying that the person has got
   //n number of events on that day.
@@ -36,7 +37,8 @@ $.getJSON(url,function(data){
     $('#tourAlert').appendChild(element);
   }
 });
-var url="dateSent?page=parties,day="+day+",month="+month+",year="+year;
+// page="party";
+var url="dateSent?day="+day+"&month="+month+"&year="+year+"&reqPage=party";
 $.getJSON(url,function(data){
   if(data.parties>0)
   {
@@ -60,22 +62,23 @@ $.getJSON(url,function(data){
     $.getJSON(url,function(data){
       // if(data.hasFriends>0)
       hasFriends=data.hasFriends;
+      if(hasFriends==0)
+      {
+        document.getElementById("wellContent").innerHTML="<h1>Its time to make some friends!!!</h1>";
+        var element=document.createElement("a");
+        element.setAttribute("role","button");
+        element.setAttribute("class","btn btn-primary");
+        var text=document.createTextNode("Make some friends");
+        element.appendChild(text);
+        element.setAttribute("href","#");
+        document.getElementById("wellContent").appendChild(element);
+      }
+      else {
+        //if the content is not zero we need to be able to do a few things
+      }
     });
 
-    if(hasFriends==0)
-    {
-      document.getElementById("wellContent").innerHTML="<h1>Its time to make some friends!!!</h1>";
-      var element=document.createElement("a");
-      element.setAttribute("role","button");
-      element.setAttribute("class","btn btn-primary");
-      var text=document.createTextNode("Make some friends");
-      element.appendChild(text);
-      element.setAttribute("href","#");
-      document.getElementById("wellContent").appendChild(element);
-    }
-    else {
-      //if the content is not zero we need to be able to do a few things
-    }
+
 
 
 };
