@@ -111,11 +111,11 @@ app.use(bodyParser());
 /*
 This is the middleware that will be required for the purpose of form handling and post request handling.
 */
-
+var param={};
 function startSession(req,email,uid)
 {
   req.session.email=email;
-  var param={};
+  // var param={};
   param["email"]=email;
   param["uid"]=uid;
   return param;
@@ -123,7 +123,7 @@ function startSession(req,email,uid)
 
 function setParam(email,userId)
 {
-  var param={};
+  // var param={};
   param["email"]=email;
   param["uid"]=userId;
   return param;
@@ -145,7 +145,7 @@ app.get('/',function(req,res){
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
       userId=results[0].uid;
     });
-    var param=setParam(req.session.email,userId);
+    param=setParam(req.session.email,userId);
     helper.renderPage(app,fs,res,io,connection,'index',param);
     console.log(chalk.blue("/ GET:index page rendered..."));
   }
@@ -188,13 +188,17 @@ app.get("/indexRequest",function(req,res){
   {
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
       var uid=results[0].uid;
+      connection.query("SELECT * FROM friends WHERE uid=?",[uid],function(err,results,fields){
+        res.json({hasFriends:Object.keys(results).length});
+      });
     });
-    res.json({uid:uid});
     console.log(chalk.green('/wellContentRequest GET:response sent'));//this is just sending the uid but i can potentially send many more
     //things like whole data based on what the friends of the person are and what photos and videos the friends have shared
   }
   else {
+
     console.log(chalk.red('/wellContentRequest GET:no session found'));
+    res.render('landing');
   }
 
 });
@@ -215,7 +219,7 @@ app.post('/signIn',function(req,res){
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
       userId=results[0].uid;
     });
-    var param=setParam(req.session.email,userId);
+    param=setParam(req.session.email,userId);
     helper.renderPage(app,fs,res,io,connection,'index',param);
   }
   else {
@@ -235,7 +239,7 @@ app.post('/signIn',function(req,res){
         {
           //start a session and render index page
           console.log(chalk.green("/signIn POST:login successful, session started"));//DEBUG
-          var param=startSession(req,email,results[0].uid);//custom function
+          param=startSession(req,email,results[0].uid);//custom function
           helper.renderPage(app,fs,res,io,connection,'index',param);
         }
         else {
@@ -246,7 +250,7 @@ app.post('/signIn',function(req,res){
       }
     });
   }
-  return false;
+
 
 });
 
@@ -264,7 +268,7 @@ app.post("/signInError",function(req,res){
       {
         //start a session and render index page
         console.log(chalk.green("/signIn POST:login successful, session started"));//DEBUG
-        var param=startSession(req,email,results[0].uid);//custom function
+        param=startSession(req,email,results[0].uid);//custom function
         helper.renderPage(app,fs,res,io,connection,'index',param);
       }
       else {
@@ -274,7 +278,7 @@ app.post("/signInError",function(req,res){
       }
     }
   });
-  return false;
+
 });
 
 
@@ -288,7 +292,7 @@ app.post('/signUp',function(req,res){
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
       userId=results[0].uid;
     });
-    var param=setParam(req.session.email,userId);
+    param=setParam(req.session.email,userId);
     helper.renderPage(app,fs,res,io,connection,'index',param);
     console.log(chalk.red("/signUp POST:index page rendered"));//DEBUG
   }
@@ -339,7 +343,7 @@ app.post('/signUp',function(req,res){
               //after we get the details inside the database we need to start a session and redirect the user to the index.ejs view.
 
               console.log(chalk.green("/signUp POST:successfully added sessions and started it."));//DEBUG
-              var param=startSession(req,email,id);
+              param=startSession(req,email,id);
               helper.renderPage(app,fs,res,io,connection,'index',param);//this function defined in helper.js actually will be used for rendering the index page
               //of the user with the account email.
               // res.render('index');
@@ -347,14 +351,14 @@ app.post('/signUp',function(req,res){
           }
         });
         //for info on queries follow:https://github.com/mysqljs/mysql#performing-queries*/
-        return false;
+
 
 });
 
 app.get('/profile',function(req,res){
   if(req.session.email&&req.session)
   {
-    var param={};
+    param={};
     // var name;
       console.log(chalk.green("/profile GET:session found"));
       var userId;
@@ -402,20 +406,118 @@ app.get('/profile',function(req,res){
     console.log(chalk.red("/profile GET:session not found"));
     res.render('landing');
   }
-  return false;
+
 });
+
+// var param={};
 
 app.get("/tours",function(req,res){
-  var param={};
+
   helper.renderPage(app,fs,res,io,connection,'tours',param);
-  return false;
+
 });
 
+
+
 app.get("/parties",function(req,res){
-  var param={};
+
   helper.renderPage(app,fs,res,io,connection,'parties',param);
-  return false;
+
 });
+
+
+function getDateToday(){//sync function
+  var dateToday=new Date();//there is a class named Date in js that has getter functions to get the day, month and year
+  var day=dateToday.getDate();
+  var month=dateToday.getMonth()+1;//since jan is 0
+  var year=dateToday.getFullYear();
+  if(day<10) {
+    day='0'+day;
+}
+
+if(month<10) {
+    month='0'+month;
+}
+return year+"-"+month+"-"+day;
+}
+
+
+app.get("/toursCreate",function(req,res){
+var destination=req.query.destination;
+var leaving=req.query.leaving;
+var returning=req.query.return;
+var des=req.query.description;
+// console.log("\toursCreate GET:date of journey"+leaving);
+connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+  var uid=results[0].uid;
+  var date=getDateToday();
+
+  connection.query("INSERT INTO tours(uid,Description,dateOfJourney,dateOfReturn,destination,popularity,timeCreated) VALUES (?,?,?,?,?,?,?)",[uid,des,leaving,returning,destination,1,date],function(err,results,fields){
+    if(err)
+    {
+      console.log(chalk.red("/toursCreate GET:could not insert into the database"+err.stack));
+      helper.renderPage(app,fs,res,io,connection,'tours',param);
+    }
+    else {
+
+      console.log(chalk.green("/toursCreate GET:successfully inserted into the database"));
+      helper.renderPage(app,fs,res,io,connection,'index',{email:req.session.email,uid:uid});
+    }
+  });
+});
+
+});
+
+app.get("/partiesCreate",function(req,res){
+
+  var destination=req.query.destination;
+  var leaving=req.query.leaving;
+  var returning=req.query.return;
+  var des=req.query.description;
+
+  connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+    var uid=results[0].uid;
+    var date=getDateToday();
+
+    connection.query("INSERT INTO party(uid,Description,start,end,destination,popularity,timeCreated) VALUES (?,?,?,?,?,?,?)",[uid,des,leaving,returning,destination,1,date],function(err,results,fields){
+      if(err)
+      {
+        console.log(chalk.red("/partiesCreate GET:could not insert into the database"+err.stack));
+        helper.renderPage(app,fs,res,io,connection,'parties',param);
+      }
+      else {
+
+        console.log(chalk.green("/partiesCreate GET:successfully inserted into the database"));
+        helper.renderPage(app,fs,res,io,connection,'index',{email:req.session.email,uid:uid});
+      }
+    });
+  });
+});
+
+
+app.get("/dateSent",function(req,res){
+  //this is actually gonna check from the database if the user has any party or tour scheduled
+  console.log(chalk.blue("/dateSent GET: ajax request recieved"));
+  var day=req.query.day;
+  var month=req.query.month;
+  var year=req.query.year;
+  var userid;
+  var date=year+"-"+month+"-"day;
+  var page=req.query.page;
+  connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+    userid=results[0].uid;
+    if(page=="tours")
+    helper.toursCheck(res,userid,connection,date);
+    else {
+      helper.partyCheck(res,userid,connection,date);
+    }
+
+  });
+
+
+});
+
+
 
 app.get('/logout',function(req,res){
   if(req.session&&req.session.email)
@@ -436,7 +538,7 @@ app.get('/logout',function(req,res){
     console.log(chalk.red("/logout GET:session was not found"));//DEBUG
     res.render('landing');
   }
-  return false;
+   ;
 });
 
 
