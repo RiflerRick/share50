@@ -1,3 +1,5 @@
+
+
 document.body.onload=function(){
   // alert("hello");
   //this file will check for events on that day, so very simply it will send an ajax request to the server to fetch information whether
@@ -78,7 +80,77 @@ $.getJSON(url,function(data){
       }
     });
 
+// ------------------------------------------------------Search Friends------------------------------------------------------
+var url;
+var element;
+
+document.getElementById("searchFriends").onkeyup=function(){
+  //everytime the user presses a key an event is triggeered
+
+  if(document.getElementById("searchFriends").value!="")
+  {
+    if(document.getElementById("friendList").style.visibility=="hidden")
+    {
+      // alert("friendList created");
+      element=document.getElementById("friendList");
+      element.style.visibility="visible";
+    }
+  }
+  else {
+    // alert("value is now null");
+    element=document.getElementById("friendList");
+    element.style.visibility="hidden";
+  }
 
 
+  /*var element=document.createElement("select");
+  element.setAttribute("id","friendList");
+  element.setAttribute("class","form-control");
+  document.getElementById("searchFriends").appendChild(element);*/
 
+  var value=document.getElementById("searchFriends").value;
+  // alert("value:"+value);
+  url="searchFriends?friend="+value;
+  $.getJSON(url,function(data){
+    var num=data.num;
+    if(num>0)
+    {
+
+      var node,friend,val;
+
+        for(var key in data)
+        {
+
+          if(key!="num")
+          {
+            element=document.createElement("option");
+
+            element.setAttribute("class","friendOptions");
+            friend=data[key];
+            // alert("key is:"+key+",friend is:"+friend);
+            element.setAttribute("name",key);
+            node=document.createTextNode(friend);
+            element.appendChild(node);
+            document.getElementById("friendList").appendChild(element);
+
+          }
+        }
+
+
+    }
+    else {
+      element=document.createElement("option");
+
+      element.setAttribute("class","friendOptions");
+      // alert("key is:"+key+",friend is:"+friend);
+      element.setAttribute("name","no results");
+      node=document.createTextNode("No Results");
+      element.appendChild(node);
+      document.getElementById("friendList").appendChild(element);
+    }
+  });
+};
+document.getElementById("searchFriends").onkeydown=function(){
+  $(".friendOptions").remove();
+};
 };

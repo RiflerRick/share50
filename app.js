@@ -205,11 +205,39 @@ app.get("/indexRequest",function(req,res){
 
 });
 
-/*function renderPage(res,pageName,param)//in js we do not need to give data type of formal parameters in functions
-{
-  res.render('header',{page:pageName});
-  return;
-}*/
+app.get("/searchFriends",function(req,res){//ajax for searching friends
+  var friend=req.query.friend;
+  console.log("/searchFriends GET:friend:"+friend);
+  friend="%"+friend+"%";
+  connection.query("SELECT * FROM users WHERE name LIKE ?",[friend],function(err,results,fields){
+    if(err)
+    {
+      console.log("/searchFriends GET:error searching from database:"+err.stack);
+    }
+    else {
+      var num=Object.keys(results).length;
+      if(num>0){
+        var val;
+        var i=0;
+        param={};
+        param["num"]=num;
+        while(i<num)
+        {
+          val="val"+i.toString();
+          param[val]=results[i].name;
+          i++;
+        }
+        res.send(JSON.stringify(param));
+      }
+      else {
+        param["num"]=0;
+        res.send(JSON.stringify(param));
+      }
+
+    }
+
+  });
+});
 
 app.post('/signIn',function(req,res){
   //now if the user signs in successfully then we need to check from the database whether the user exists or not...
