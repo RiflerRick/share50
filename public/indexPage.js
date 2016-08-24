@@ -16,6 +16,21 @@ if(month<10) {
     month='0'+month;
 }
 
+//-----------------------------------------------span generator--------------------------------------------------------------
+
+function spanGenerator(pointer)
+{
+  var element=document.createElement("div");
+  element.setAttribute("class","well well-sm");
+  element.style.marginLeft="25px";
+  element.style.width="750px";
+  // element.appendChild(node);
+  element.style.borderRadius="2px";
+  pointer.appendChild(element);
+}
+
+//-----------------------------------------------------Party and Tour alerts--------------------------------------------------
+
 //this code here will send the current date to the server and the server will check if it is an event day or not.
 /*
 If it is an event day then the yser will be able to upload photos for that day
@@ -54,6 +69,39 @@ $.getJSON(url,function(data){
     $('#partyAlert').appendChild(element);
   }
   });
+//--------------------------------------------------friend request---------------------------------------------------------------
+
+var url="checkFriendReq";
+$.getJSON(url,function(data){
+  //ajax to request how many friend requests are sent and what are they
+  var hasRequests=data.hasRequests;
+  if(hasRequests>0)
+  {
+    // alert("hello");
+
+    var textNode="You have "+hasRequests+" friend request/s.                 ";
+    var element=document.createElement("span");
+    var node=document.createTextNode(textNode);
+    element.style.marginLeft="250px";
+    element.setAttribute("class","alert alert-info");
+    element.appendChild(node);
+
+
+    var buttonElement=document.createElement("button");
+    node=document.createTextNode("Check out!!!");
+    buttonElement.setAttribute("class","btn btn-primary");
+    buttonElement.setAttribute("href","friendRequestPage");
+    buttonElement.appendChild(node);
+
+    element.appendChild(buttonElement);
+    document.getElementById("dynComponent").appendChild(element);
+
+  }
+
+});
+
+
+
 
 // --------------------------------------------------Index Content Generator-------------------------------------------------------
 
@@ -66,8 +114,28 @@ $.getJSON(url,function(data){
       hasFriends=data.hasFriends;
       if(hasFriends==0)
       {
-        document.getElementById("wellContent").innerHTML="<h1>Its time to make some friends!!!</h1>";
-        var element=document.createElement("a");
+
+        // document.getElementById("wellContent").innerHTML="<h1>Its time to make some friends!!!</h1>";
+
+        spanGenerator(document.getElementById("dynComponent"));//add a span to the parent element
+
+        /*var element=document.createElement("div");
+        element.setAttribute("class","well");
+        // element.appendChild(node);
+        element.style.borderRadius="2px";
+        document.getElementById("dynComponent").appendChild(element);*/
+
+
+        var element=document.createElement("div");
+        element.setAttribute("class","well")
+        // element.style.position="relative";
+        element.style.marginLeft="25px";
+        element.style.width="750px";
+        element.setAttribute("id","wellContent");
+        element.appendChild(document.createTextNode("Its time to make some friends"));
+        document.getElementById("dynComponent").appendChild(element);
+
+        element=document.createElement("a");
         element.setAttribute("role","button");
         element.setAttribute("class","btn btn-primary");
         var text=document.createTextNode("Make some friends");
@@ -79,27 +147,33 @@ $.getJSON(url,function(data){
         //if the content is not zero we need to be able to do a few things
       }
     });
+//-------------------------------------------------friend request----------------------------------------------------------
 
 // ------------------------------------------------------Search Friends------------------------------------------------------
 var url;
 var element;
+var node,friend,val,newElement,newButton,buttonNode;
 
 document.getElementById("searchFriends").onkeyup=function(){
   //everytime the user presses a key an event is triggeered
 
+
+
   if(document.getElementById("searchFriends").value!="")
   {
-    if(document.getElementById("friendList").style.visibility=="hidden")
-    {
-      // alert("friendList created");
+    // alert("friendList created");
       element=document.getElementById("friendList");
       element.style.visibility="visible";
-    }
+      document.getElementById("friendRequest").style.visibility="visible";
+
+      $(".friendOptions").remove();
   }
   else {
     // alert("value is now null");
     element=document.getElementById("friendList");
     element.style.visibility="hidden";
+
+      document.getElementById("friendRequest").style.visibility="hidden";
   }
 
 
@@ -108,6 +182,7 @@ document.getElementById("searchFriends").onkeyup=function(){
   element.setAttribute("class","form-control");
   document.getElementById("searchFriends").appendChild(element);*/
 
+
   var value=document.getElementById("searchFriends").value;
   // alert("value:"+value);
   url="searchFriends?friend="+value;
@@ -115,23 +190,30 @@ document.getElementById("searchFriends").onkeyup=function(){
     var num=data.num;
     if(num>0)
     {
-
-      var node,friend,val;
-
         for(var key in data)
         {
 
           if(key!="num")
           {
-            element=document.createElement("option");
+            if(key.substring(0,3)=="uid")
+            {
+              value=data[key];
+              element.setAttribute("value",value);
+            }
+            else
+            {
+              element=document.createElement("option");
+              element.setAttribute("class","friendOptions");
 
-            element.setAttribute("class","friendOptions");
-            friend=data[key];
-            // alert("key is:"+key+",friend is:"+friend);
-            element.setAttribute("name",key);
-            node=document.createTextNode(friend);
-            element.appendChild(node);
-            document.getElementById("friendList").appendChild(element);
+
+              friend=data[key];
+
+              // alert("key is:"+key+",friend is:"+friend);
+              node=document.createTextNode(friend);
+              element.appendChild(node);
+              document.getElementById("friendList").appendChild(element);
+            }
+
 
           }
         }
@@ -139,18 +221,30 @@ document.getElementById("searchFriends").onkeyup=function(){
 
     }
     else {
-      element=document.createElement("option");
-
+      /*element=document.createElement("option");
       element.setAttribute("class","friendOptions");
-      // alert("key is:"+key+",friend is:"+friend);
-      element.setAttribute("name","no results");
+      element.setAttribute("name","No Results");
       node=document.createTextNode("No Results");
       element.appendChild(node);
-      document.getElementById("friendList").appendChild(element);
+      document.getElementById("friendList").appendChild(element);*/
+      element=document.getElementById("friendList");
+      element.style.visibility="hidden";
+      document.getElementById("friendRequest").style.visibility="hidden";
     }
   });
 };
 document.getElementById("searchFriends").onkeydown=function(){
+  // var dup;
   $(".friendOptions").remove();
+  /*$(".friendOptions").each(function(){
+    dup=$(this).value;
+    $(".friendOptions").each(function(){
+      if($(this).value==dup)
+      $(this).remove();
+    });
+  });*/
 };
+
+
+
 };

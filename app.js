@@ -217,7 +217,7 @@ app.get("/searchFriends",function(req,res){//ajax for searching friends
     else {
       var num=Object.keys(results).length;
       if(num>0){
-        var val;
+        var val,uid;
         var i=0;
         param={};
         param["num"]=num;
@@ -225,6 +225,8 @@ app.get("/searchFriends",function(req,res){//ajax for searching friends
         {
           val="val"+i.toString();
           param[val]=results[i].name;
+          uid="uid"+i.toString();
+          param[uid]=results[i].uid;
           i++;
         }
         res.send(JSON.stringify(param));
@@ -238,6 +240,48 @@ app.get("/searchFriends",function(req,res){//ajax for searching friends
 
   });
 });
+
+app.get("/friendRequest",function(req,res){
+
+  var uid=req.query.friendList;
+  console.log(chalk.blue("/friendRequest GET:req.query.friendList returned:"+uid));
+  var userid;
+  connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+    userid=results[0].uid;
+    var date=getDateToday();
+      connection.query("INSERT INTO friends (uid,fuid,isAccepted,timeOfCreation) VALUES (?,?,?,?)",[userid,uid,0,date],function(err,results,fields){
+        if(err)
+        {
+          console.log(chalk.red("/friendRequest GET:could not insert into database"+err.stack));
+          helper.renderPage(app,fs,res,io,connection,'index',{email:req.session.email,uid:userid});
+        }
+        else {
+          console.log(chalk.green("/friendRequest GET:successfully inserted into database"));
+          helper.renderPage(app,fs,res,io,connection,'index',{email:req.session.email,uid:userid});
+        }
+      });
+  });
+
+});
+
+app.get("/checkFriendReq",function(req,res){
+  connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+    var userid=results[0].uid;
+    connection.query("SELECT * FROM friends WHERE fuid=? AND isAccepted=?",[userid,0],function(err,results,fields){
+      if(err)
+      {
+        console.log(chalk.red("/checkFriendReq GET:error in selecting from db"+err.stack));
+        helper.renderPage(app,fs,res,io,connection,'index',{email:req.session.email,uid:userid});
+      }
+      else {
+        console.log(chalk.green("/checkFriendReq GET:successfully retrieved from db"));
+        var requests=Object.keys(results).length;
+        res.send(JSON.stringify({hasRequests:requests}));
+      }
+    });
+  });
+});
+
 
 app.post('/signIn',function(req,res){
   //now if the user signs in successfully then we need to check from the database whether the user exists or not...
