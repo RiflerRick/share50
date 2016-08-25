@@ -1,5 +1,8 @@
 
 
+
+//------------------------------------------------------------JSON requests end here-----------------------------------------------------
+
 document.body.onload=function(){
   // alert("hello");
   //this file will check for events on that day, so very simply it will send an ajax request to the server to fetch information whether
@@ -29,6 +32,46 @@ function spanGenerator(pointer)
   pointer.appendChild(element);
 }
 
+//-----------------------------------------------------All JSON requests will go here----------------------------------------------
+//---------------------parties and tours check requests----------------------
+// Check browser support
+if (typeof(Storage) !== "undefined") {
+    // Store
+    // alert("great!!!your browser supports");
+    } else {
+    // document.getElementById("result").innerHTML = "Sorry, your browser does not support Web Storage...";
+    alert("Browser does not local storage");
+}
+
+
+var tours,parties;
+var url="dateSent?day="+day+"&month="+month+"&year="+year+"&reqPage=tours";
+$.getJSON(url,function(data){
+  localStorage.setItem("tours",data.tours);
+// tours=data.tours;
+});
+// alert("tours:"+tours);
+url="dateSent?day="+day+"&month="+month+"&year="+year+"&reqPage=party";
+$.getJSON(url,function(data){
+localStorage.setItem("parties",data.parties);
+});
+//-------------------check friend requests--------------------------------------
+var hasRequests;
+url="checkFriendReq";
+$.getJSON(url,function(data){
+  localStorage.setItem("hasRequests",data.hasRequests);
+});
+//-----------------------index content generator--------------------------------
+url="indexRequest";
+var hasFriends;
+$.getJSON(url,function(data){
+  localStorage.setItem("hasFriends",data.hasFriends);
+});
+// alert(localStorage.getItem("tours"));
+tours=localStorage.getItem("tours");
+parties=localStorage.getItem("parties");
+hasFriends=localStorage.getItem("hasFriends");
+hasRequests=localStorage.getItem("hasRequests");
 //-----------------------------------------------------Party and Tour alerts--------------------------------------------------
 
 //this code here will send the current date to the server and the server will check if it is an event day or not.
@@ -37,15 +80,14 @@ If it is an event day then the yser will be able to upload photos for that day
 the date will be sent in the form of an ajax request.
 */
 // var page="tours";
-var url="dateSent?day="+day+"&month="+month+"&year="+year+"&reqPage=tours";
-$.getJSON(url,function(data){
+
   //so if the date is that of an event we make a few make a few changes to the navbar of the index page saying that the person has got
   //n number of events on that day.
-  if(data.tours>0)//data.tours will indicate the number of tours that the person is having
+  if(tours>0)//data.tours will indicate the number of tours that the person is having
   {
     //this means there is an event today
-    document.getElementById("tourAlert").style.visibility=true;
-    $('#tourAlert').innerHTML="Looks like you have "+data.tours+ "tours"
+    document.getElementById("tourAlert").style.visibility="visible";
+    $('#tourAlert').innerHTML="Looks like you have "+tours+ "tours"
     var element=document.createElement("button");
     element.setAttribute("class","btn btn-primary")
     element.setAttribute("href","updateTour");
@@ -53,14 +95,11 @@ $.getJSON(url,function(data){
     element.appendChild(text);
     $('#tourAlert').appendChild(element);
   }
-});
 // page="party";
-var url="dateSent?day="+day+"&month="+month+"&year="+year+"&reqPage=party";
-$.getJSON(url,function(data){
-  if(data.parties>0)
+  if(parties>0)
   {
-    document.getElementById("partyAlert").style.visibility=true;
-    $('#partytAlert').innerHTML="Looks like you have "+data.parties+ "parties"
+    document.getElementById("partyAlert").style.visibility="visible";
+    $('#partytAlert').innerHTML="Looks like you have "+parties+ "parties"
     var element=document.createElement("button");
     element.setAttribute("class","btn btn-primary")
     element.setAttribute("href","updateParty");
@@ -68,18 +107,14 @@ $.getJSON(url,function(data){
     element.appendChild(text);
     $('#partyAlert').appendChild(element);
   }
-  });
+
 //--------------------------------------------------friend request---------------------------------------------------------------
 
-var url="checkFriendReq";
-$.getJSON(url,function(data){
-  //ajax to request how many friend requests are sent and what are they
-  var hasRequests=data.hasRequests;
   if(hasRequests>0)
   {
     // alert("hello");
 
-    var textNode="You have "+hasRequests+" friend request/s.                 ";
+    var textNode="You have "+hasRequests+" friend request/s.";
     var element=document.createElement("span");
     var node=document.createTextNode(textNode);
     element.style.marginLeft="250px";
@@ -98,21 +133,13 @@ $.getJSON(url,function(data){
 
   }
 
-});
 
 
 
 
 // --------------------------------------------------Index Content Generator-------------------------------------------------------
 
-  var hasFriends;
-    // alert("hello:"+document.getElementById("contentIsFilled").value);
-    var url="indexRequest";//this is the first request to see if i have any friends or not
-    //if i do then comes the next set of requests.
-    $.getJSON(url,function(data){
-      // if(data.hasFriends>0)
-      hasFriends=data.hasFriends;
-      if(hasFriends==0)
+  if(hasFriends==0)
       {
 
         // document.getElementById("wellContent").innerHTML="<h1>Its time to make some friends!!!</h1>";
@@ -146,8 +173,6 @@ $.getJSON(url,function(data){
       else {
         //if the content is not zero we need to be able to do a few things
       }
-    });
-//-------------------------------------------------friend request----------------------------------------------------------
 
 // ------------------------------------------------------Search Friends------------------------------------------------------
 var url;

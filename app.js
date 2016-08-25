@@ -188,7 +188,7 @@ app.get("/indexRequest",function(req,res){
   {
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
       var uid=results[0].uid;
-      connection.query("SELECT * FROM friends WHERE uid=?",[uid],function(err,results,fields){
+      connection.query("SELECT * FROM friends WHERE uid=? AND isAccepted=?",[uid,1],function(err,results,fields){
         var hasFriends=Object.keys(results).length;
         // console.log("hasFriends:"+hasFriends);
         res.json({hasFriends:hasFriends});
@@ -209,7 +209,7 @@ app.get("/searchFriends",function(req,res){//ajax for searching friends
   var friend=req.query.friend;
   console.log("/searchFriends GET:friend:"+friend);
   friend="%"+friend+"%";
-  connection.query("SELECT * FROM users WHERE name LIKE ?",[friend],function(err,results,fields){
+  connection.query("SELECT * FROM users WHERE name LIKE ? AND email NOT IN (?)",[friend,req.session.email],function(err,results,fields){
     if(err)
     {
       console.log("/searchFriends GET:error searching from database:"+err.stack);
@@ -281,6 +281,11 @@ app.get("/checkFriendReq",function(req,res){
     });
   });
 });
+
+/*app.get("",function(req,res){
+
+});*/
+
 
 
 app.post('/signIn',function(req,res){
