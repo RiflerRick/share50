@@ -1,0 +1,28 @@
+<% include initials %>
+<title id="titleValue"><%= page %></title>
+</head>
+<!-- one important factor here is that you cannot -->
+<% include header %>
+
+<body>
+
+  <script type="text/javascript" src="friendRequestPage.js"></script>
+  <!-- <div class="container-fluid" style="width:1000px;"> -->
+  <div class="well" style="margin:auto; width:700px;">These friends have sent requests to you</div><br>
+  <div class="panel panel-default" id="dynComponent">
+
+    <div class="panel-body">
+
+      <div class="well" id="wellContent">
+
+
+      </div>
+
+      <!--  The above technique is the way we include js files into the ejs template-->
+    </div>
+  </div>
+<!-- </div> -->
+</body>
+<p id="uid" style="visibility:hidden;"><%= uid %></p>
+<% include footer %>
+</html>

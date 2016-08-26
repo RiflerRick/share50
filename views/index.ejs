@@ -1,9 +1,12 @@
 <% include initials %>
 <title id="titleValue"><%= page %></title>
-
+<!-- <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/datetimepicker/latest/DateTimePicker.min.css" /> -->
+<!-- <script type="text/javascript" src="//cdn.jsdelivr.net/datetimepicker/latest/DateTimePicker.min.js"></script> -->
 </head>
 <!-- one important factor here is that you cannot -->
 <body>
+
+
 <script type="text/javascript" src="indexPage.js"></script>
 <nav class="navbar navbar-default" style="background-color: #1c8ce9; border-color:  #1c8ce9;">
   <div class="container-fluid">
@@ -80,6 +83,6 @@
   </div>
 
 </body>
-
+<p id="uid" style="visibility:hidden;"><%= uid  %></p>
 <% include footer %>
 </html>

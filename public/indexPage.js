@@ -4,6 +4,12 @@
 //------------------------------------------------------------JSON requests end here-----------------------------------------------------
 
 document.body.onload=function(){
+
+    /*webshims.setOptions('waitReady', false);
+    webshims.setOptions('forms-ext', {types: 'date'});
+    webshims.polyfill('forms forms-ext');*/
+
+
   // alert("hello");
   //this file will check for events on that day, so very simply it will send an ajax request to the server to fetch information whether
   //any event is on that day or not, if it is then the user should be able to post various photos, videos and the like into that day.
@@ -35,43 +41,52 @@ function spanGenerator(pointer)
 //-----------------------------------------------------All JSON requests will go here----------------------------------------------
 //---------------------parties and tours check requests----------------------
 // Check browser support
-if (typeof(Storage) !== "undefined") {
+if (typeof(Storage) === "undefined") {
     // Store
     // alert("great!!!your browser supports");
-    } else {
+
     // document.getElementById("result").innerHTML = "Sorry, your browser does not support Web Storage...";
     alert("Browser does not local storage");
 }
 
+// alert("tours:"+sessionStorage.getItem("tours")+", parties:"+sessionStorage.getItem("parties")+",hasRequests:"+sessionStorage.getItem("hasRequests")+",hasFriends:"+sessionStorage.getItem("hasFriends"));
 
-var tours,parties;
+
+
+// var tours,parties;
 var url="dateSent?day="+day+"&month="+month+"&year="+year+"&reqPage=tours";
 $.getJSON(url,function(data){
-  localStorage.setItem("tours",data.tours);
+  sessionStorage.setItem("tours",data.tours);
 // tours=data.tours;
 });
 // alert("tours:"+tours);
 url="dateSent?day="+day+"&month="+month+"&year="+year+"&reqPage=party";
 $.getJSON(url,function(data){
-localStorage.setItem("parties",data.parties);
+sessionStorage.setItem("parties",data.parties);
 });
 //-------------------check friend requests--------------------------------------
-var hasRequests;
-url="checkFriendReq";
+// var hasRequests;
+url="checkFriendReq?uid="+$("#uid").innerHTML;//send uid also
 $.getJSON(url,function(data){
-  localStorage.setItem("hasRequests",data.hasRequests);
+  // alert("hasRequests returned straight from server:"+data.hasRequests);
+  sessionStorage.setItem("hasRequests",data.hasRequests);
 });
 //-----------------------index content generator--------------------------------
-url="indexRequest";
-var hasFriends;
+url="indexRequest?uid="+$("#uid").innerHTML;//send uid also
+// var hasFriends;
 $.getJSON(url,function(data){
-  localStorage.setItem("hasFriends",data.hasFriends);
+  // alert("hasFriends returned straight from server:"+data.hasFriends);
+  sessionStorage.setItem("hasFriends",data.hasFriends);
 });
-// alert(localStorage.getItem("tours"));
-tours=localStorage.getItem("tours");
-parties=localStorage.getItem("parties");
-hasFriends=localStorage.getItem("hasFriends");
-hasRequests=localStorage.getItem("hasRequests");
+// alert(sessionStorage.getItem("tours"));
+/*tours=sessionStorage.getItem("tours");
+parties=sessionStorage.getItem("parties");
+hasFriends=sessionStorage.getItem("hasFriends");
+hasRequests=sessionStorage.getItem("hasRequests");*/
+// alert("hasRequests:"+sessionStorage.getItem("hasRequests"));
+// alert("tours:"+sessionStorage.getItem("tours")+", parties:"+sessionStorage.getItem("parties")+",hasRequests:"+sessionStorage.getItem("hasRequests")+",hasFriends:"+sessionStorage.getItem("hasFriends"));
+
+window.setTimeout(function(){//this may be required as a last resort.
 //-----------------------------------------------------Party and Tour alerts--------------------------------------------------
 
 //this code here will send the current date to the server and the server will check if it is an event day or not.
@@ -83,11 +98,14 @@ the date will be sent in the form of an ajax request.
 
   //so if the date is that of an event we make a few make a few changes to the navbar of the index page saying that the person has got
   //n number of events on that day.
-  if(tours>0)//data.tours will indicate the number of tours that the person is having
+  // while(sessionStorage.getItem("tours")==null||sessionStorage.getItem("parties")==null||sessionStorage.getItem("hasRequests")==null||sessionStorage.getItem("hasFriends")==null){alert("null");};
+
+
+  if(sessionStorage.getItem("tours")>0)//data.tours will indicate the number of tours that the person is having
   {
     //this means there is an event today
     document.getElementById("tourAlert").style.visibility="visible";
-    $('#tourAlert').innerHTML="Looks like you have "+tours+ "tours"
+    $('#tourAlert').innerHTML="Looks like you have "+sessionStorage.getItem("tours")+ "tours"
     var element=document.createElement("button");
     element.setAttribute("class","btn btn-primary")
     element.setAttribute("href","updateTour");
@@ -96,10 +114,10 @@ the date will be sent in the form of an ajax request.
     $('#tourAlert').appendChild(element);
   }
 // page="party";
-  if(parties>0)
+  if(sessionStorage.getItem("parties")>0)
   {
     document.getElementById("partyAlert").style.visibility="visible";
-    $('#partytAlert').innerHTML="Looks like you have "+parties+ "parties"
+    $('#partytAlert').innerHTML="Looks like you have "+sessionStorage.getItem("parties")+ "parties"
     var element=document.createElement("button");
     element.setAttribute("class","btn btn-primary")
     element.setAttribute("href","updateParty");
@@ -110,11 +128,14 @@ the date will be sent in the form of an ajax request.
 
 //--------------------------------------------------friend request---------------------------------------------------------------
 
-  if(hasRequests>0)
-  {
-    // alert("hello");
+// alert("tours:"+sessionStorage.getItem("tours")+", parties:"+sessionStorage.getItem("parties")+",hasRequests:"+sessionStorage.getItem("hasRequests")+",hasFriends:"+sessionStorage.getItem("hasFriends"));
 
-    var textNode="You have "+hasRequests+" friend request/s.";
+
+  if(sessionStorage.getItem("hasRequests")>0)
+  {
+    // alert("hello hasRequests seems greater than 0");
+
+    var textNode="You have "+sessionStorage.getItem("hasRequests")+" friend request/s.";
     var element=document.createElement("span");
     var node=document.createTextNode(textNode);
     element.style.marginLeft="250px";
@@ -122,10 +143,14 @@ the date will be sent in the form of an ajax request.
     element.appendChild(node);
 
 
-    var buttonElement=document.createElement("button");
+    var buttonElement=document.createElement("a");
     node=document.createTextNode("Check out!!!");
+    buttonElement.setAttribute("role","button");
     buttonElement.setAttribute("class","btn btn-primary");
-    buttonElement.setAttribute("href","friendRequestPage");
+    buttonElement.setAttribute("id","checkingFriendReq");
+    // if($("#uid")==null){alert("oh its null");}
+    var buttonElementhref="friendRequestPage?uid="+document.getElementById("uid").innerHTML;//this is the uid of the current user
+    buttonElement.setAttribute("href",buttonElementhref);
     buttonElement.appendChild(node);
 
     element.appendChild(buttonElement);
@@ -138,11 +163,14 @@ the date will be sent in the form of an ajax request.
 
 
 // --------------------------------------------------Index Content Generator-------------------------------------------------------
+// alert("tours:"+sessionStorage.getItem("tours")+", parties:"+sessionStorage.getItem("parties")+",hasRequests:"+sessionStorage.getItem("hasRequests")+",hasFriends:"+sessionStorage.getItem("hasFriends"));
 
-  if(hasFriends==0)
+
+  if(sessionStorage.getItem("hasFriends")==0)
       {
 
         // document.getElementById("wellContent").innerHTML="<h1>Its time to make some friends!!!</h1>";
+        // alert("hasFriends:"+sessionStorage.getItem("hasFriends"));
 
         spanGenerator(document.getElementById("dynComponent"));//add a span to the parent element
 
@@ -169,9 +197,6 @@ the date will be sent in the form of an ajax request.
         element.appendChild(text);
         element.setAttribute("href","#");
         document.getElementById("wellContent").appendChild(element);
-      }
-      else {
-        //if the content is not zero we need to be able to do a few things
       }
 
 // ------------------------------------------------------Search Friends------------------------------------------------------
@@ -272,4 +297,15 @@ document.getElementById("searchFriends").onkeydown=function(){
 
 
 
+  sessionStorage.removeItem("tours");
+  sessionStorage.removeItem("parties");
+  sessionStorage.removeItem("hasRequests");
+  sessionStorage.removeItem("hasFriends");
+  // sessionStorage.setItem("");
+
+},1000);
+
 };
+
+/*document.getElementById("checkingFriendReq").onclick=function(){
+};*/

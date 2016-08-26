@@ -188,7 +188,7 @@ app.get("/indexRequest",function(req,res){
   {
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
       var uid=results[0].uid;
-      connection.query("SELECT * FROM friends WHERE uid=? AND isAccepted=?",[uid,1],function(err,results,fields){
+      connection.query("SELECT * FROM friends WHERE (uid=? OR fuid=?) AND isAccepted=?",[uid,uid,1],function(err,results,fields){
         var hasFriends=Object.keys(results).length;
         // console.log("hasFriends:"+hasFriends);
         res.json({hasFriends:hasFriends});
@@ -253,11 +253,13 @@ app.get("/friendRequest",function(req,res){
         if(err)
         {
           console.log(chalk.red("/friendRequest GET:could not insert into database"+err.stack));
-          helper.renderPage(app,fs,res,io,connection,'index',{email:req.session.email,uid:userid});
+          param=setParam(req.session.email,userid);
+          helper.renderPage(app,fs,res,io,connection,'index',param);
         }
         else {
           console.log(chalk.green("/friendRequest GET:successfully inserted into database"));
-          helper.renderPage(app,fs,res,io,connection,'index',{email:req.session.email,uid:userid});
+          param=setParam(req.session.email,userid);
+          helper.renderPage(app,fs,res,io,connection,'index',param);
         }
       });
   });
@@ -267,11 +269,13 @@ app.get("/friendRequest",function(req,res){
 app.get("/checkFriendReq",function(req,res){
   connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
     var userid=results[0].uid;
+    console.log("/checkFriendReq GET: user id of the user logged in is:"+userid);
     connection.query("SELECT * FROM friends WHERE fuid=? AND isAccepted=?",[userid,0],function(err,results,fields){
       if(err)
       {
         console.log(chalk.red("/checkFriendReq GET:error in selecting from db"+err.stack));
-        helper.renderPage(app,fs,res,io,connection,'index',{email:req.session.email,uid:userid});
+        param=setParam(req.session.email,userid);
+        helper.renderPage(app,fs,res,io,connection,'index',param);
       }
       else {
         console.log(chalk.green("/checkFriendReq GET:successfully retrieved from db"));
@@ -282,9 +286,64 @@ app.get("/checkFriendReq",function(req,res){
   });
 });
 
-/*app.get("",function(req,res){
+app.get("/friendRequestPage",function(req,res){
+  var pageName="friendRequestPage";
+  var uid=req.query.uid;
+  res.render("friendRequestPage",{page:pageName,uid:uid});
+});
 
-});*/
+app.get("/showFriendRequests",function(req,res){
+  console.log(chalk.blue("/showFriendRequests GET:ajax request received"));
+  var uid;
+  // connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+    connection.query("SELECT * FROM friends WHERE fuid=? AND isAccepted=?",[req.query.uid,0],function(err,results,fields){
+      var i=0;
+      var data={};
+      var uid;
+      console.log("results:"+Object.keys(results).length);
+      if(Object.keys(results).length==0)
+      {
+        console.log(chalk.green("/showFriendRequests GET: no friend reqs pending"));
+        // param=setParam(req.session.email,req.query.uid);
+        res.send(JSON.stringify({name0:null}));
+        // helper.renderPage(app,fs,res,io,connection,'index',param);//this is the uid of the user logged in
+      }
+      else {
+        while(i<Object.keys(results).length)
+        {
+          uid="uid"+i.toString();
+          data[uid]=results[i].uid;
+          i++;
+        }
+        helper.respondNames(chalk,connection,res,data);//only for grabbing the names and emails before sending a json response to the client
+      }
+
+    });
+
+});
+
+
+app.get("/acceptFriendRequest",function(req,res){
+  console.log(chalk.blue("acceptFriendRequest GET:request sent to accept friend by email:"+req.query.email));
+  connection.query("SELECT * FROM users WHERE email=?",[req.query.email],function(err,results,fields){
+    var uid=results[0].uid;
+    connection.query("UPDATE friends SET isAccepted=? WHERE uid=? AND fuid=?",[1,uid,req.query.uid],function(err,results,fields){
+      if(err)//here req.query.uid is the uid of the user logged in currently
+      {
+        console.log(chalk.red("could not update the database"));
+      }
+      else {
+        console.log(chalk.green("updated the database successfully"));
+        var pageName="friendRequestPage";
+        uid=req.query.uid;
+        res.render("friendRequestPage",{page:pageName,uid:uid});
+      }
+
+    });
+
+  });
+})
+
 
 
 
@@ -535,12 +594,14 @@ connection.query("SELECT * FROM users WHERE email=?",[req.session.email],functio
     if(err)
     {
       console.log(chalk.red("/toursCreate GET:could not insert into the database"+err.stack));
+
       helper.renderPage(app,fs,res,io,connection,'tours',param);
     }
     else {
 
       console.log(chalk.green("/toursCreate GET:successfully inserted into the database"));
-      helper.renderPage(app,fs,res,io,connection,'index',{email:req.session.email,uid:uid});
+      param=setParam(req.session.email,uid);
+      helper.renderPage(app,fs,res,io,connection,'index',param);
     }
   });
 });
@@ -567,7 +628,8 @@ app.get("/partiesCreate",function(req,res){
       else {
 
         console.log(chalk.green("/partiesCreate GET:successfully inserted into the database"));
-        helper.renderPage(app,fs,res,io,connection,'index',{email:req.session.email,uid:uid});
+        param=setParam(req.sesion.email,uid);
+        helper.renderPage(app,fs,res,io,connection,'index',param);
       }
     });
   });
