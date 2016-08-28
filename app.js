@@ -144,10 +144,11 @@ app.get('/',function(req,res){
     //so we need to pass both the email and the id to index the user
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
       userId=results[0].uid;
+      param=setParam(req.session.email,userId);
+      helper.renderPage(app,fs,res,io,connection,'index',param);
+      console.log(chalk.blue("/ GET:index page rendered..."));
     });
-    param=setParam(req.session.email,userId);
-    helper.renderPage(app,fs,res,io,connection,'index',param);
-    console.log(chalk.blue("/ GET:index page rendered..."));
+
   }
   else
   {
@@ -207,6 +208,7 @@ app.get("/indexRequest",function(req,res){
 
 app.get("/searchFriends",function(req,res){//ajax for searching friends
   var friend=req.query.friend;
+  var userid=req.query.uid;
   console.log("/searchFriends GET:friend:"+friend);
   friend="%"+friend+"%";
   connection.query("SELECT * FROM users WHERE name LIKE ? AND email NOT IN (?)",[friend,req.session.email],function(err,results,fields){
@@ -215,6 +217,7 @@ app.get("/searchFriends",function(req,res){//ajax for searching friends
       console.log("/searchFriends GET:error searching from database:"+err.stack);
     }
     else {
+
       var num=Object.keys(results).length;
       if(num>0){
         var val,uid;
@@ -223,12 +226,17 @@ app.get("/searchFriends",function(req,res){//ajax for searching friends
         param["num"]=num;
         while(i<num)
         {
+
           val="val"+i.toString();
           param[val]=results[i].name;
           uid="uid"+i.toString();
           param[uid]=results[i].uid;
+
           i++;
+
         }
+        //param now contains the list of the name and uids of the users having similar names (except the user logged in)
+        // helper.checkFriendList(chalk,res,param,userid,connection);
         res.send(JSON.stringify(param));
       }
       else {
@@ -241,25 +249,43 @@ app.get("/searchFriends",function(req,res){//ajax for searching friends
   });
 });
 
-app.get("/friendRequest",function(req,res){
+app.post("/friendRequest",function(req,res){
 
-  var uid=req.query.friendList;
+  var uid=req.body.friendList;
   console.log(chalk.blue("/friendRequest GET:req.query.friendList returned:"+uid));
   var userid;
   connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
     userid=results[0].uid;
     var date=getDateToday();
+
+    connection.query("SELECT * FROM friends WHERE ((fuid=? AND uid=?) OR (uid=? AND fuid=?)) AND isAccepted=?",[uid,userid,uid,userid,1],function(errNew, resultsNew,fieldsNew){
+      if(Object.keys(results).length>0){
+      connection.query("SELECT * FROM users WHERE uid=?",[uid],function(e,r,f){//here uid is the friend's uid.
+          var name=r[0].name;
+          var pageName="Hey check out!!!";
+          console.log("error, seems you are trying to insert into database again...");
+          res.render('friendRequestPageError',{page:pageName,friend:name});
+      });}
+
+
+    });
+
       connection.query("INSERT INTO friends (uid,fuid,isAccepted,timeOfCreation) VALUES (?,?,?,?)",[userid,uid,0,date],function(err,results,fields){
-        if(err)
+        if(err)//the most probability of this error is only when you are trying to make a friend request that already exists
         {
           console.log(chalk.red("/friendRequest GET:could not insert into database"+err.stack));
           param=setParam(req.session.email,userid);
-          helper.renderPage(app,fs,res,io,connection,'index',param);
+          // helper.renderPage(app,fs,res,io,connection,'index',param);
+          // console.log("uid now:"+uid);
+
+
         }
         else {
           console.log(chalk.green("/friendRequest GET:successfully inserted into database"));
           param=setParam(req.session.email,userid);
-          helper.renderPage(app,fs,res,io,connection,'index',param);
+          // helper.renderPage(app,fs,res,io,connection,'index',param);
+          var pageName="friend Request Sent";
+          res.render("friendRequestSent",{page:pageName});
         }
       });
   });
@@ -356,9 +382,11 @@ app.post('/signIn',function(req,res){
     console.log(chalk.blue("/signIn POST:session exists"));//DEBUG
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
       userId=results[0].uid;
+      // console.log("/signIn GET:user id returned is"+userId);
+      param=setParam(req.session.email,userId);
+      helper.renderPage(app,fs,res,io,connection,'index',param)
     });
-    param=setParam(req.session.email,userId);
-    helper.renderPage(app,fs,res,io,connection,'index',param);
+    ;
   }
   else {
     console.log(chalk.blue("/signIn POST:session does not exist"));//DEBUG
@@ -429,15 +457,16 @@ app.post('/signUp',function(req,res){
     console.log(chalk.red("/signUp POST:session found"));//DEBUG
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
       userId=results[0].uid;
+      param=setParam(req.session.email,userId);
+      helper.renderPage(app,fs,res,io,connection,'index',param);
+      console.log(chalk.red("/signUp POST:index page rendered"));//DEBUG
     });
-    param=setParam(req.session.email,userId);
-    helper.renderPage(app,fs,res,io,connection,'index',param);
-    console.log(chalk.red("/signUp POST:index page rendered"));//DEBUG
+
   }
   else {
     //error checking
     console.log(chalk.green("/signUp POST:signUp post request made"));//DEBUG
-  }
+
 
   //if the user signs up, we need to make sure that he has registered...
   //connection to the database will be made here and we will register the user...
@@ -465,15 +494,15 @@ app.post('/signUp',function(req,res){
         password=passHash.generate(rawPass);
         connection.query('INSERT INTO users (name,email,dob,gender,password) VALUES (?,?,?,?,?)',[name,email,dob,gender,password],function(err,results,fields){
           var id;
-          connection.query('SELECT * FROM users WHERE email=?',[email],function(err,results,fields){
-            id=results[0].uid;//getting the id of the user and setting the user accordingly...
+          connection.query('SELECT * FROM users WHERE email=?',[email],function(errNew,resultsNew,fieldsNew){
+            id=resultsNew[0].uid;//getting the id of the user and setting the user accordingly...
             console.log(chalk.blue("/signUp POST:user id retrieved from db:"+id));//DEBUG
-          });
+
           //results will contain the results of the query.
           //fields will contain the information about the returned results.
-          if(err)
+          if(errNew)
           {
-            console.log(chalk.red("/signUp POST:could not insert into database",err.stack));//DEBUG
+            console.log(chalk.red("/signUp POST:error encountered",err.stack));//DEBUG
           }
           else {
 
@@ -481,16 +510,18 @@ app.post('/signUp',function(req,res){
               //after we get the details inside the database we need to start a session and redirect the user to the index.ejs view.
 
               console.log(chalk.green("/signUp POST:successfully added sessions and started it."));//DEBUG
+              console.log("id now is:"+id);
               param=startSession(req,email,id);
               helper.renderPage(app,fs,res,io,connection,'index',param);//this function defined in helper.js actually will be used for rendering the index page
               //of the user with the account email.
               // res.render('index');
 
           }
+          });
         });
         //for info on queries follow:https://github.com/mysqljs/mysql#performing-queries*/
 
-
+      }
 });
 
 app.get('/profile',function(req,res){
@@ -507,7 +538,7 @@ app.get('/profile',function(req,res){
         param["email"]=results[0].email;
         param["dob"]=results[0].dob;
         userId=results[0].uid;
-      });
+
       connection.query("SELECT * FROM tours WHERE uid=?",[userId],function(err,results,fields){
         if(Object.keys(results).length>0)
         {
@@ -528,9 +559,10 @@ app.get('/profile',function(req,res){
           param["partyNum"]=0;
         }
       });
-      connection.query("SELECT * FROM friends WHERE uid=?",[userId],function(err,results,fields){
+      connection.query("SELECT * FROM friends WHERE (uid=? OR fuid=?) AND isAccepted=?",[userId,userId,1],function(err,results,fields){
         if(Object.keys(results).length>0)
         {
+          console.log("friends is not zero")
           param["friends"]=Object.keys(results).length;
         }
         else {
@@ -539,6 +571,7 @@ app.get('/profile',function(req,res){
         helper.renderPage(app,fs,res,io,connection,'profile',param);
       });
       // helper.renderPage(app,fs,res,io,connection,'profile',param);
+      });
   }
   else {
     console.log(chalk.red("/profile GET:session not found"));

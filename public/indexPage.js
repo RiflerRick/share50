@@ -66,13 +66,13 @@ sessionStorage.setItem("parties",data.parties);
 });
 //-------------------check friend requests--------------------------------------
 // var hasRequests;
-url="checkFriendReq?uid="+$("#uid").innerHTML;//send uid also
+url="checkFriendReq?uid="+document.getElementById("uid").innerHTML;//send uid also
 $.getJSON(url,function(data){
   // alert("hasRequests returned straight from server:"+data.hasRequests);
   sessionStorage.setItem("hasRequests",data.hasRequests);
 });
 //-----------------------index content generator--------------------------------
-url="indexRequest?uid="+$("#uid").innerHTML;//send uid also
+url="indexRequest?uid="+document.getElementById("uid").innerHTML;//send uid also
 // var hasFriends;
 $.getJSON(url,function(data){
   // alert("hasFriends returned straight from server:"+data.hasFriends);
@@ -212,34 +212,22 @@ document.getElementById("searchFriends").onkeyup=function(){
   if(document.getElementById("searchFriends").value!="")
   {
     // alert("friendList created");
-      element=document.getElementById("friendList");
-      element.style.visibility="visible";
-      document.getElementById("friendRequest").style.visibility="visible";
-
+    document.getElementById("friendList").style.visibility="visible";
+    document.getElementById("friendRequest").style.visibility="visible";
       $(".friendOptions").remove();
   }
   else {
-    // alert("value is now null");
     element=document.getElementById("friendList");
     element.style.visibility="hidden";
-
-      document.getElementById("friendRequest").style.visibility="hidden";
+    document.getElementById("friendRequest").style.visibility="hidden";
   }
-
-
-  /*var element=document.createElement("select");
-  element.setAttribute("id","friendList");
-  element.setAttribute("class","form-control");
-  document.getElementById("searchFriends").appendChild(element);*/
-
-
   var value=document.getElementById("searchFriends").value;
-  // alert("value:"+value);
-  url="searchFriends?friend="+value;
+  url="searchFriends?friend="+value+"&uid="+document.getElementById("uid").innerHTML;
   $.getJSON(url,function(data){
     var num=data.num;
     if(num>0)
     {
+
         for(var key in data)
         {
 
@@ -254,29 +242,15 @@ document.getElementById("searchFriends").onkeyup=function(){
             {
               element=document.createElement("option");
               element.setAttribute("class","friendOptions");
-
-
               friend=data[key];
-
-              // alert("key is:"+key+",friend is:"+friend);
               node=document.createTextNode(friend);
               element.appendChild(node);
               document.getElementById("friendList").appendChild(element);
             }
-
-
           }
         }
-
-
     }
     else {
-      /*element=document.createElement("option");
-      element.setAttribute("class","friendOptions");
-      element.setAttribute("name","No Results");
-      node=document.createTextNode("No Results");
-      element.appendChild(node);
-      document.getElementById("friendList").appendChild(element);*/
       element=document.getElementById("friendList");
       element.style.visibility="hidden";
       document.getElementById("friendRequest").style.visibility="hidden";
@@ -284,15 +258,7 @@ document.getElementById("searchFriends").onkeyup=function(){
   });
 };
 document.getElementById("searchFriends").onkeydown=function(){
-  // var dup;
   $(".friendOptions").remove();
-  /*$(".friendOptions").each(function(){
-    dup=$(this).value;
-    $(".friendOptions").each(function(){
-      if($(this).value==dup)
-      $(this).remove();
-    });
-  });*/
 };
 
 
@@ -304,6 +270,10 @@ document.getElementById("searchFriends").onkeydown=function(){
   // sessionStorage.setItem("");
 
 },1000);
+
+document.getElementById("friendRequestForm").onsubmit=function(){alert("friend request form submitted")};
+
+
 
 };
 
