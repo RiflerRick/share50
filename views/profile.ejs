@@ -5,21 +5,39 @@
 <!-- one important factor here is that you cannot -->
 <% include header %>
 <body>
+  <div style="float:left; margin-left:100px;">
+    <div class="panel panel-default" style="width:200px; height:200px;">
+    <img src="<%= profileSrc %>" id="profilePic"  style="width:200px; height:200px;"></img>
+    </div>
+    <form id="picUpload" style="display:block;" action="profilePicUpload" method="post" enctype="multipart/form-data">
+      <!--  This encoding type is essential for multer usage in nodejs-->
+      <div class="form-group">
+        <input type="file" id="fileUpload" name="pic">
+        <!--  if the image has alreadu been uploaded make sure that thorugh js the upload option is disabled-->
+      </div>
+      <div class="form-group">
+        <input class="btn btn-primary" role="button" type="submit" id="uploadButton" value="Upload">
+      </div>
+    </form>
+    <a class="btn btn-info" id="changePic" style="display:none;">Change profile pic</a>
+  </div>
   <!--  here all the juicy parts will actually happen-->
-  <div class="panel panel-default" id="dynComponent">
+  <div class="panel panel-default" style="margin-left:450px;"id="dynComponent">
     <div class="panel-body">
+
       <div class="well" id="wellContent">
 
-        <h4><span class="label label-default">Name:</span><label id="name" class="label label-info" > <%= name %></label> </h4>
-        <h4><span class="label label-default">Email:</span><label id="email" class="label label-info" > <%= email %></label></h4>
-        <h4><span class="label label-default">Birthday:</span><label id="dob" class="label label-info" > <%= dob %></label></h4>
-        <h4><span class="label label-default">Tours:</span><label id="tours" class="label label-info" > <%= tours %></label></h4>
-        <h4><span class="label label-default">Parties:</span><label id="parties" class="label label-info" > <%= parties %></label></h4>
-        <h4><span class="label label-default">Friends:</span><label id="friends" class="label label-info" > <%= friends %></label></h4>
+        <h2><label id="name" class="label label-info" > <%= name %></label> </h2>
+        <h3><span class="label label-default">Email:</span><label id="email" class="label label-info" > <%= email %></label></h3>
+        <h3><span class="label label-default">Birthday:</span><label id="dob" class="label label-info" > <%= dob %></label></h3>
+        <h3><span class="label label-default">Tours:</span><label id="tours" class="label label-info" > <%= tours %></label></h3>
+        <h3><span class="label label-default">Parties:</span><label id="parties" class="label label-info" > <%= parties %></label></h3>
+        <h3><span class="label label-default">Friends:</span><label id="friends" class="label label-info" > <%= friends %></label></h3>
       </div>
     </div>
   </div>
-
+  <p id="userid" style="display:none;"><%= userid %></p>
+  <script type="text/javascript" src="profile.js"></script>
 </body>
 <% include footer %>
 </html>

@@ -13,13 +13,14 @@ var fs=require('fs');
 var path=require('path');//includes path modules
 var helper=require('helper.js');//custom directory for a few helper functions.
 var chalk=require('chalk');
+var mime=require('mime');//for file uploads
 // var session=require('express-session');//this is actually for the session storage for the user.
 var session=require('express-session');//this is using the mozilla library or module called express-sessions.
 var mysql=require('mysql');
 var escape=require('html-escape');//this is just for escaping special characters.
 var passHash=require('password-hash');//this module will be required for hashing the password into the table.
 var bodyParser=require('body-parser');//for handling post requests we need to use body parser.
-
+var multer  = require('multer');//for uploading files(images and videos)
 var app=express();//making an instance of express module and we can call various functions from within express using app.<function name>
 var server=app.listen(1337,function(){
   console.log("listening at port 1337");
@@ -94,6 +95,7 @@ app.use(session({
   duration:30*60*1000,
   activeDuration:5*60*1000
 }));
+
 
 
 
@@ -524,6 +526,32 @@ app.post('/signUp',function(req,res){
       }
 });
 
+
+
+var storage=multer.diskStorage({destination:function(req,file,cb){
+  //cb is callback
+  cb(null,'public/images/acc/');
+},filename:function(req,file,cb){
+  // console.log("inisde diskStorage callback, file obtained is :"+file.originalname);
+  //  var date=new Date();
+  connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+    if(err)
+    {
+      console.log("error in file storage");
+    }
+    else {
+      var userid=results[0].uid;
+    cb(null,file.fieldname+userid+"."+mime.extension(file.mimetype));
+    }
+
+  });
+
+
+
+}});
+var upload = multer({ storage:storage });
+
+
 app.get('/profile',function(req,res){
   if(req.session.email&&req.session)
   {
@@ -537,7 +565,41 @@ app.get('/profile',function(req,res){
         // console.log("inside profile now object is:"+param.name);
         param["email"]=results[0].email;
         param["dob"]=results[0].dob;
+        if(results[0].profilePicPath==null)
+        {
+          param["profileSrc"]="images/acc/emoticonNoFace.png";
+        }
+        else {
+          var path="images/acc/"+results[0].profilePicPath;
+          // path=path.substring(7);//we are omiting public/ from our path
+          var mime=results[0].profilePicMime;
+          /*switch(mime)
+          {
+            case "image/jpeg":
+            {
+              path=path+".jpg";
+              break;
+            }
+            case "image/bmp":
+            {
+              path=path+".bmp";
+              break;
+            }
+            case "image/x-windows-bmp":
+            {
+              path=path+".bmp";
+              break;
+            }
+            case "image/png":
+            {
+              path+=".png";
+              break;
+            }
+          }*/
+          param["profileSrc"]=path;
+        }
         userId=results[0].uid;
+        param["userid"]=userId;
 
       connection.query("SELECT * FROM tours WHERE uid=?",[userId],function(err,results,fields){
         if(Object.keys(results).length>0)
@@ -580,7 +642,34 @@ app.get('/profile',function(req,res){
 
 });
 
-// var param={};
+app.post("/profilePicUpload",upload.single('pic'),function(req,res){//upload.single(<fieldname>) fieldname is the name of the field from wehere we are trying to upload the file(form field name)
+  var pic=req.file;//this is an object that contains attributes like path that we can use for storing in the database
+  // console.log("")
+  // console.log("mime type currently is:"+pic.mimetype);
+  //we can use a modeule mmmagic of express that can check mime types of files, make sure to see this from github
+  if(pic==undefined)
+  {
+    var pageName="Hey check out";
+    res.render("fileNotChosen",{page:pageName});
+    return;
+  }
+
+  connection.query("UPDATE users SET profilePicPath=?,profilePicMime=? WHERE email=?",[pic.filename,pic.mimetype,req.session.email],function(err,results,fields){
+    if(err)
+    {
+      console.log(chalk.red("error inserting into database:"+err.stack));
+    }
+    else {
+      console.log(chalk.green("successfully inserted into database"));
+      connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(errNew,resultsNew,fieldsNew){
+        var userid=resultsNew[0].uid;
+        param=setParam(req.session.email,userid);
+        helper.renderPage(app,fs,res,io,connection,'index',param);
+      });
+
+    }
+  });
+});
 
 app.get("/tours",function(req,res){
 
