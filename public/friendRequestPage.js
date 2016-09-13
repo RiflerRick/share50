@@ -48,7 +48,8 @@ document.body.onload=function(){
         idVal="id"+i.toString();
         buttonElement.setAttribute("id",idVal);
         // buttonElement.setAttribute("class","acceptFriendRequestButton");
-        buttonElement.style.marginLeft="250px";
+        buttonElement.style.float="right";
+        // buttonElement.style.marginRight="50px";
         nameNode=document.createTextNode("Accept");
         element.appendChild(elementHeader);
         buttonElement.appendChild(nameNode);

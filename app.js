@@ -324,10 +324,10 @@ app.get("/showFriendRequests",function(req,res){
   console.log(chalk.blue("/showFriendRequests GET:ajax request received"));
   var uid;
   // connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
-    connection.query("SELECT * FROM friends WHERE fuid=? AND isAccepted=?",[req.query.uid,0],function(err,results,fields){
+    connection.query("SELECT users.name,users.email FROM friends INNER JOIN users ON friends.uid=users.uid WHERE friends.fuid=? AND friends.isAccepted=?",[req.query.uid,0],function(err,results,fields){
       var i=0;
       var data={};
-      var uid;
+      var uid,name,email;
       console.log("results:"+Object.keys(results).length);
       if(Object.keys(results).length==0)
       {
@@ -340,10 +340,15 @@ app.get("/showFriendRequests",function(req,res){
         while(i<Object.keys(results).length)
         {
           uid="uid"+i.toString();
-          data[uid]=results[i].uid;
+          name="name"+i.toString();
+          email="email"+i.toString();
+          // data[uid]=results[i].uid;
+          data[name]=results[i].name;
+          data[email]=results[i].email;
           i++;
         }
-        helper.respondNames(chalk,connection,res,data);//only for grabbing the names and emails before sending a json response to the client
+        res.send(JSON.stringify(data));
+        // helper.respondNames(chalk,connection,res,data);//only for grabbing the names and emails before sending a json response to the client
       }
 
     });
@@ -785,7 +790,51 @@ app.get("/dateSent",function(req,res){
 
 });
 
+/*app.get('/inviteFriendsParties',function(req,res){
+  var pageName="Invite Friends";
+  res.render('inviteFriendsParties',{page:pageName});
+});
 
+app.get('/inviteFriendsTours',function(req,res){
+  var pageName="Invite Friends";
+  res.render('inviteFriendsTours',{page:pageName});
+});*/
+
+app.get('/friendList',function(req,res){
+  //so according to the email of of the session that will be existing in the server the friendlist of the person will be prepared and sent
+  connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+    var id=results[0].uid;
+    connection.query("SELECT users.email,users.name FROM friends INNER JOIN users ON (friends.uid=users.uid OR friends.fuid=users.uid) WHERE (friends.uid=? OR friends.fuid=?) AND friends.isAccepted=1",[id,id],function(err,results,fields){
+      var friendList={};
+      var i,name,email,uid;
+      friendList["elements"]=Object.keys(results).length;
+      for(i=0;i<Object.keys(results).length;i++)
+      {
+
+        if(results[i].email.localeCompare(req.session.email)!=0)
+        {
+          name="name"+i;
+          email="email"+i;
+          friendList[name]=results[i].name;
+          friendList[email]=results[i].email;
+        }
+      }
+      //here we only send the ids of the friends
+      // helper.sendFriendList(chalk,connection,res,friendList);
+      res.send(JSON.stringify(friendList));
+    });
+  });
+});
+
+
+app.get('/partiesCreate',function(req,res){
+
+
+});
+
+app.get('/toursCreate',function(req,res){
+
+});
 
 app.get('/logout',function(req,res){
   if(req.session&&req.session.email)

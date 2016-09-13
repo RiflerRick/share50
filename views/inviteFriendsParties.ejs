@@ -1,16 +1,17 @@
 <% include initials %>
 <title id="titleValue"><%= page %></title>
+<!-- <script type="text/javascript" src="inviteFriendsParties.js"></script> -->
 </head>
 <!-- one important factor here is that you cannot -->
 <% include header %>
 <body>
-  <script type="text/javascript" src="party.js"></script>
-  <div class="panel panel-default" id="dynComponent">
-    <div class="panel-body" id="content">
-      <!-- <p id="contentIsFilled"></p> -->
+  <script type="text/javascript" src="inviteFriendsParties.js"></script>
+  <!--<div class="panel panel-default" id="dynComponent">
+    <div class="panel-body">
+
       <div class="well" id="wellContent">
-        <!-- <button id="wellContentButton" >Click me</button> -->
-        <form id="tourForm" class="form-horizontal" method="get" action="partiesCreate">
+
+        <form class="form-horizontal" method="get" action="partiesCreate">
   <div class="form-group">
     <label for="destination" class="col-sm-4 control-label">Destination</label>
     <div class="col-sm-8">
@@ -22,8 +23,8 @@
     <label for="dateOfJourney" class="col-sm-4 control-label">When do you get started</label>
     <div class="col-sm-8">
       <div class='input-group date' id='journey'>
-                    <input id="dateOfLeaving" onblur="dateOfLeavingValidation()" type='date'name="leaving" class="form-control" />
-                    <!-- <input type="text" name="leaving"  data-field="date" > -->
+                    <input type='date'name="leaving" class="form-control" />
+
 
                 </div>
     </div>
@@ -33,8 +34,8 @@
     <label for="dateOfReturn" class="col-sm-4 control-label">When does the fun subside</label>
     <div class="col-sm-8">
       <div class='input-group date' id='return'>
-                    <input id="dateOfReturn" onblur="dateOfReturnValidation()" type='date' name="return" class="form-control" />
-                    <!-- <input type="text" name="return"  data-field="date"> -->
+                    <input type='date' name="return" class="form-control" />
+
 
                 </div>
     </div>
@@ -47,8 +48,13 @@
     </div>
   </div>
 
+  <div class="form-group">
+    <div class="col-sm-offset-5 col-sm-10">
+      <a class="btn btn-info" href="inviteFriendsParties">Invite Friends!!!</a>
+    </div>
+  </div>
 
-  <!--<div class="form-group">
+  <div class="form-group">
     <label for="description" class="col-sm-4 control-label">Invite friends</label>
     <div class="col-sm-8">
       <select class="form-control">
@@ -64,12 +70,19 @@
     <div class="col-sm-offset-5 col-sm-10">
       <button type="submit" class="btn btn-info" >Lets go!!!</button>
     </div>
-  </div>-->
+  </div>
 </form>
 
       </div>
 
-      <!--  The above technique is the way we include js files into the ejs template-->
+
+    </div>
+  </div>-->
+  <div class="panel panel-default" id="outerContent" style="margin:auto; width:700px;">
+    <div class="panel-body">
+      <div class="well" id="content">
+
+      </div>
     </div>
   </div>
 </body>
