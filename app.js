@@ -806,21 +806,20 @@ app.post('/partiesCreate',function(req,res){
           console.log(chalk.blue("friendList value is:"+friendList[key]));
           checkBoxName=friendList[key];
           var value=req.body[checkBoxName];
-          if(value==1)
+          if(value==null)
           {
-            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a value of 1"));
+            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a value of undefined"));
             //do not add as a visitor
           }
           else {
             //add as a visitor
-            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a value of 0"));
+            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a defined value"));
             connection.query("INSERT INTO visitor(pid,uid,visitorId,isAccepted) VALUES (?,?,?,0)",[pid,uid,checkBoxName],function(err,results,fields){
               if(err)
               {
                 console.log(chalk.red("error inserting into the database:"+err.stack));
               }
-              else
-              console.log(chalk.green("/partiesCreate get: successfully inserted id:"+checkBoxName+" visitor into visitor table"));
+              else{console.log(chalk.green("successfully inserted into visitor table"));}
             });
           }
         }
@@ -873,19 +872,18 @@ console.log(chalk.blue("leaving date accepted:"+leavingDate));
           console.log(chalk.blue("friendList value is:"+friendList[key]));
           checkBoxName=friendList[key];
           var value=req.body[checkBoxName];
-          
-          if(value==1)
+          // console.log("value of value is:"+value+"checkBoxName"+checkBoxName);
+          if(value==null)
           {
-            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a value of 1"));
+            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a value of underfined"));
             //do not add as a visitor
             //seems like when the value is 1 it means it is not selected whereas when the value is 0 it is selected.
           }
           else {
             //add as a visitor
-            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a value of 0"));
+            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a defined value"));
             connection.query("INSERT INTO companion(tid,uid,comId,isAccepted) VALUES (?,?,?,0)",[tid,uid,checkBoxName],function(err,results,fields){
-              console.log(chalk.green("/toursCreate get: successfully inserted id:"+checkBoxName+" companion into companion table"));
-            });
+          });
           }
         }
       }
