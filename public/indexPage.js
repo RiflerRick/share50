@@ -101,7 +101,7 @@ the date will be sent in the form of an ajax request.
   // while(sessionStorage.getItem("tours")==null||sessionStorage.getItem("parties")==null||sessionStorage.getItem("hasRequests")==null||sessionStorage.getItem("hasFriends")==null){alert("null");};
 
 
-  if(sessionStorage.getItem("tours")>0)//data.tours will indicate the number of tours that the person is having
+  /*if(sessionStorage.getItem("tours")>0)//data.tours will indicate the number of tours that the person is having
   {
     //this means there is an event today
     document.getElementById("tourAlert").style.visibility="visible";
@@ -124,7 +124,7 @@ the date will be sent in the form of an ajax request.
     var text=document.createTextNode("Update party");
     element.appendChild(text);
     $('#partyAlert').appendChild(element);
-  }
+  }*/
 
 //--------------------------------------------------friend request---------------------------------------------------------------
 
@@ -166,7 +166,7 @@ the date will be sent in the form of an ajax request.
 // alert("tours:"+sessionStorage.getItem("tours")+", parties:"+sessionStorage.getItem("parties")+",hasRequests:"+sessionStorage.getItem("hasRequests")+",hasFriends:"+sessionStorage.getItem("hasFriends"));
 
 
-  if(sessionStorage.getItem("hasFriends")==0)
+  /*if(sessionStorage.getItem("hasFriends")==0)
       {
 
         // document.getElementById("wellContent").innerHTML="<h1>Its time to make some friends!!!</h1>";
@@ -174,11 +174,11 @@ the date will be sent in the form of an ajax request.
 
         spanGenerator(document.getElementById("dynComponent"));//add a span to the parent element
 
-        /*var element=document.createElement("div");
+        var element=document.createElement("div");
         element.setAttribute("class","well");
         // element.appendChild(node);
         element.style.borderRadius="2px";
-        document.getElementById("dynComponent").appendChild(element);*/
+        document.getElementById("dynComponent").appendChild(element);
 
 
         var element=document.createElement("div");
@@ -197,7 +197,7 @@ the date will be sent in the form of an ajax request.
         element.appendChild(text);
         element.setAttribute("href","#");
         document.getElementById("wellContent").appendChild(element);
-      }
+      }*/
 
 // ------------------------------------------------------Search Friends------------------------------------------------------
 var url;

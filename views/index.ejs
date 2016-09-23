@@ -48,38 +48,58 @@
 
 
 
-  <div class="panel panel-default" id="dynComponent">
-    <div class="panel-body">
-      <div id="frAlertModal" class="modal fade" tabindex="-1" role="dialog">
-        <!--  modal to be displayed to show the user that he/she has successfully sent the friendRequest-->
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <h4 class="modal-title">Successful!!!</h4>
-            </div>
-            <div class="modal-body">
-              <p>successfully sent the friend request!!!</p>
-            </div>
-            <div class="modal-footer">
-              <!-- <button type="button" class="btn btn-default" >Close</button> -->
-              <button type="button" class="btn btn-primary" data-dismiss="modal">Okay</button>
-            </div>
-          </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-      </div><!-- /.modal -->
-      <span id="tourAlert" class="alert alert-warning" role="alert" style="visibility:hidden;"></span>
-      <span id="partyAlert" class="alert alert-warning" role="alert" style="visibility:hidden;"></span>
-      <!-- <div id="fRAlert" class="alert alert-info" role="alert" style="visibility:hidden;">successfully sent the friend request</div> -->
-      <!-- <div class="well" id="frContent" style="-webkit-align-content: center; align-content: center;"> -->
-      <!-- </div> -->
-      <!-- <div class="well" id="wellContent"> -->
-        <!-- <button id="wellContentButton" >Click me</button> -->
 
-      <!-- </div> -->
+  <div class="container-fluid" id="dynComponent">
+    <!--  id="dynComponent"-->
+    <!-- <div class="panel-body" > -->
 
-      <!--  The above technique is the way we include js files into the ejs template-->
-    </div>
+      <!--  Here we are gonna have a grid system that is divided into parts, one that will contain a link to go to tours and
+    the other that will contain a link to go to parties.-->
+
+
+
+    <!-- </div> -->
+  </div>
+
+  <div class="container-fluid" id="thumbnailContainer">
+
+        <div class="row">
+          <div class="col-sm-6">
+            <!--  so here we will have the basic stuff in order to get the grid have a panel-->
+            <!-- <div class="panel panel-default" id="tourComponent"> -->
+              <!-- <div class="panel panel-body"> -->
+                <!-- <div class="thumbnail" id="tourThumbnail"> -->
+                  <img src="images/image3.jpg" alt="tour" style="width:350px;height:250px;">
+                  <!-- <div class="caption"> -->
+                    <h3>Tours</h3>
+                    <p>
+                      Plan your tours and invite friends to join you for that tour. Share all photos with your friends
+                      and make the cherish those memories later.
+                    </p>
+                    <p><a href="myTours" class="btn btn-primary" role="button">My Tours</a></p>
+                  <!-- </div> -->
+                <!-- </div> -->
+              <!-- </div> -->
+            <!-- </div> -->
+          </div>
+          <div class="col-sm-6">
+            <!-- <div class="panel panel-default" id="partyComponent"> -->
+              <!-- <div class="panel panel-body"> -->
+                <!-- <div class="thumbnail" id="partyThumbnail"> -->
+                  <img src="images/image2.jpg" alt="party" style="width:350px;height:250px;">
+                  <!-- <div class="caption"> -->
+                    <h3>Parties</h3>
+                    <p>
+                      Plan your party and invite friends to join you for that party. Share your favourite moments imprint them on
+                      the timeline. Cherish those moments later.
+                    </p>
+                    <p><a href="myParties" class="btn btn-primary" role="button">My Parties</a></p>
+                  <!-- </div> -->
+                <!-- </div> -->
+              <!-- </div> -->
+            <!-- </div> -->
+          </div>
+        </div>
   </div>
 
 </body>
