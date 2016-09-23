@@ -117,6 +117,8 @@ var param={};
 function startSession(req,email,uid)
 {
   req.session.email=email;
+  console.log("email of session object is:"+email);
+  req.session.uid=uid;
   // var param={};
   param["email"]=email;
   param["uid"]=uid;
@@ -734,15 +736,7 @@ app.get("/dateSent",function(req,res){
 
 });
 
-/*app.get('/inviteFriendsParties',function(req,res){
-  var pageName="Invite Friends";
-  res.render('inviteFriendsParties',{page:pageName});
-});
 
-app.get('/inviteFriendsTours',function(req,res){
-  var pageName="Invite Friends";
-  res.render('inviteFriendsTours',{page:pageName});
-});*/
 
 app.get('/friendList',function(req,res){
   //so according to the email of of the session that will be existing in the server the friendlist of the person will be prepared and sent
@@ -769,6 +763,7 @@ app.get('/friendList',function(req,res){
       //here we have the array called friendList, lets store that data in the session object
       //here we only send the ids of the friends
       // helper.sendFriendList(chalk,connection,res,friendList);
+
       req.session.friendList=friendList;
       res.send(JSON.stringify(friendList));
     });
@@ -797,6 +792,11 @@ app.post('/partiesCreate',function(req,res){
     });
     connection.query("SELECT * FROM party WHERE uid=? AND randomVal=?",[uid,randomVal],function(err,results,fields){
       var pid=results[0].pid;
+      /*if(req.session.friendList==null)//error checking
+      console.log("req.session.friendList is null");
+      else {
+        console.log("req.session.friendList is not null, voila");
+      }*/
       var friendList=req.session.friendList;
       var checkBoxName;
       for(var key in friendList)
@@ -826,12 +826,7 @@ app.post('/partiesCreate',function(req,res){
       }
     });
     });
-    /*connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(errNew,resultsNew,fieldsNew){
-      var userid=resultsNew[0].uid;
-      param=setParam(req.session.email,userid);
-      helper.renderPage(app,fs,res,io,connection,'index',param);
-    });*/
-    //here also we need to redirect the user to a specific page in order to simply tell the user that a party has been created.
+
     var pageName="PartyCreated";
     res.render('partyCreated',{page:pageName});
 
@@ -889,14 +884,141 @@ console.log(chalk.blue("leaving date accepted:"+leavingDate));
       }
       });
     });
-    /*connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(errNew,resultsNew,fieldsNew){
-      var userid=resultsNew[0].uid;
-      param=setParam(req.session.email,userid);
-      helper.renderPage(app,fs,res,io,connection,'index',param);
-    });*/
-    // a page needs to be rendered here that simply tells us that the tour has been created and people will be notified
     var pageName="tourCreated";
     res.render('tourCreated',{page:pageName});
+});
+
+app.get('/myTours',function(req,res){
+  /*
+  my tours page is basically there for the purpose of showing all the tours that the person has undertaken just that, from there
+  in case the person wants to check those tours, he has to actually go there.
+  */
+  var pageName="My Tours";
+  res.render('myTours',{page:pageName});
+});
+
+app.get('/myParties',function(req,res){
+  /*
+  my parties is basically there for the purpose of showing all the parties.
+  */
+  var pageName="My Parties";
+  res.render('myParties',{page:pageName});
+});
+
+app.get('/checkMyTours',function(req,res){
+  var uid=req.session.uid;
+  console.log("/checkMyTours: uid returned from session object:"+uid);
+  //first we need to tell the user if there are any tours to which he is invited
+  var response={};
+  connection.query("SELECT * FROM companion WHERE comId=? AND isAccepted=0",[uid],function(err,results,fields){
+    var num=Object.keys(results).length;
+    var id,i,name,email;
+    i=0;
+    if(num>0)
+    {
+      response["invites"]=num;
+      while(num>0)
+      {
+        id="uid"+i;
+        name="name"+i;
+        email="email"+i;
+        response[id]=results[i].uid;
+        connection.query("SELECT * FROM users WHERE uid=?",[results[i].uid],function(errNew,resultsNew,fieldsNew){
+          response[name]=resultsNew[0].name;
+          response[email]=resultsNew[0].email;
+        });
+        i++;
+        num--;
+      }
+    }
+    else {
+      response["invites"]=0;
+    }
+    // helper.printJSON(response);
+
+  // helper.printJSON(response);
+  //first part of response created.
+
+  connection.query("SELECT * FROM tours WHERE uid=?",[uid],function(err,results,fields){
+    var num=Object.keys(results).length;
+    console.log("number of tours returned"+num);
+    response["ownTours"]=num;//tells us the number of tours conducted.
+    var destination,dateOfJourney,dateOfReturn,description;
+    var i=0;
+
+
+    while(i<num)
+    {
+
+      destination="dest"+i;
+      dateOfJourney="dateOfJourney"+i;
+      dateOfReturn="dateOfReturn"+i;
+      description="description"+i;
+      response[destination]=results[i].destination;
+      response[dateOfJourney]=results[i].dateOfJourney;
+      response[dateOfReturn]=results[i].dateOfReturn;
+      response[description]=results[i].Description;
+      i++;
+
+    }
+    // helper.printJSON(response);//user defined function.
+    res.send(JSON.stringify(response));
+  });
+  });
+
+});
+
+app.get('/checkMyParties',function(req,res){
+  var uid=req.session.uid;
+  var response={};
+
+  connection.query("SELECT * FROM visitor WHERE visitorId=? AND isAccepted=0",[uid],function(err,results,fields){
+    var num=Object.keys(results).length;
+    var id,i,name,email;
+    i=0;
+    if(num>0)
+    {
+      response["invites"]=num;
+      while(num>0)
+      {
+        id="uid"+i;
+        name="name"+i;
+        email="email"+i;
+        response[id]=results[i].uid;
+        connection.query("SELECT * FROM users WHERE uid=?",[results[i].uid],function(errNew,resultsNew,fieldsNew){
+          response[name]=resultsNew[0].name;
+          response[email]=resultsNew[0].email;
+        });
+        i++;
+        num--;
+      }
+    }
+    else {
+      response["invites"]=0;
+    }
+
+  });
+
+  connection.query("SELECT * FROM party WHERE uid=?",[uid],function(err,results,fields){
+    var num=Object.keys(results).length;
+    response["number"]=num;//tells us the number of tours conducted.
+    var destination,dateOfJourney,dateOfReturn,description;
+    var i=0;
+    while(i<num)
+    {
+      destination="dest"+i;
+      dateOfJourney="dateOfJourney"+i;
+      dateOfReturn="dateOfReturn"+i;
+      description="description"+i;
+      response[destination]=results[i].destination;
+      response[dateOfJourney]=results[i].start;
+      response[dateOfReturn]=results[i].end;
+      response[description]=results[i].Description;
+      i++;
+    }
+
+  });
+  res.send(JSON.stringify(response));
 });
 
 app.get('/logout',function(req,res){
