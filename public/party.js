@@ -36,24 +36,24 @@ var dorPointer,dolPointer,para,node;
     {
       var element=document.createElement("div");
       element.setAttribute("class","alert alert-info");
-      var node=document.createTextNode("Seems you are yet to make friends, you may however enjoy alone!!!")
+      var node=document.createTextNode("Seems you are yet to make friends, you may however enjoy alone!!!");
       element.appendChild(node);
 
-      var button=document.createElement("input");
+      var button=document.createElement("a");
       button.setAttribute("role","button");
       // button.setAttribute("type","submit");
       button.setAttribute("value","create Party");
       button.setAttribute("class","btn btn-primary");
       // button.setAttribute("href","createTour");
-      button.setAttribute("onclick","formValidate()");
+      button.setAttribute("onclick","validateForm()");
       button.style.display="block";
       button.style.width="300px";
       button.style.margin="auto";
       var buttonNode=document.createTextNode("Create Party");
       button.appendChild(buttonNode);
       element.appendChild(button);
-      // document.getElementById("tourForm").appendChild(element);
-      document.getElementById("tourForm").appendChild(element);
+      // document.getElementById("partyForm").appendChild(element);
+      document.getElementById("partyForm").appendChild(element);
 
     }
     else {
@@ -61,7 +61,7 @@ var dorPointer,dolPointer,para,node;
       // element.setAttribute("class","alert alert-info");
       // var node=document.createTextNode("Seems you are yet to make friends, you may however enjoy alone!!!")
 
-      var panels,panelHeader,panelBody,nodeHeader,nodeBody,panelCheck,panelCheckLabel,checkNode,hrefValue;
+      var panels,panelHeader,panelBody,nodeHeader,nodeBody,panelCheck,panelCheckLabel,checkNode,hrefValue,id;
       for (var key in data)
       {
 
@@ -79,6 +79,10 @@ var dorPointer,dolPointer,para,node;
           panelBody.setAttribute("class","panel-body");
           nodeHeader=document.createTextNode(data[key]);
         }
+        else if(key.substring(0,2).localeCompare("id")==0)
+        {
+          id=data[key];
+        }
         else if(key.substring(0,5).localeCompare("email")==0)
         {
           // alert("email is"+data[key]);
@@ -88,6 +92,7 @@ var dorPointer,dolPointer,para,node;
           panelCheck.setAttribute("class","checkbox");
           panelCheckLabel=document.createElement("input");
           panelCheckLabel.setAttribute("type","checkbox");
+          panelCheckLabel.setAttribute("name",id);
           panelCheckNode=document.createTextNode("Invite");//dummy
           panelCheck.style.float="right";
           panelCheckLabel.setAttribute("value","");
@@ -106,12 +111,12 @@ var dorPointer,dolPointer,para,node;
 
 
       }
-      var button=document.createElement("input");
+      var button=document.createElement("a");
       button.setAttribute("role","button");
       // button.setAttribute("type","submit");
       button.setAttribute("value","create Party");
       button.setAttribute("class","btn btn-primary");
-      button.setAttribute("onclick","formValidate()");
+      button.setAttribute("onclick","validateForm()");
       // button.setAttribute("href","createTour");
       button.style.display="block";
       button.style.width="300px";
@@ -119,7 +124,7 @@ var dorPointer,dolPointer,para,node;
       var buttonNode=document.createTextNode("Create Party");
       button.appendChild(buttonNode);
       element.appendChild(button);
-      document.getElementById("tourForm").appendChild(element);
+      document.getElementById("partyForm").appendChild(element);
     }
   });
 
@@ -214,6 +219,6 @@ function validateForm()
 {
   if (validDOL==1&&validDOR==1)
   {
-    document.getElementById("tourForm").submit();
+    document.getElementById("partyForm").submit();
   }
 }

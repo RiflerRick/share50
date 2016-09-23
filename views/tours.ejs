@@ -11,11 +11,12 @@
       <p id="contentIsFilled"></p>
       <div class="well" id="wellContent">
         <!-- <button id="wellContentButton" >Click me</button> -->
-        <form id="tourForm" class="form-horizontal" method="get" action="toursCreate">
+        <form id="tourForm" class="form-horizontal" method="post" action="toursCreate">
   <div class="form-group">
     <label for="destination" class="col-sm-4 control-label">Destination</label>
     <div class="col-sm-8">
-      <input type="text" name="destination" class="form-control" id="destination" placeholder="Where would you like to go">
+      <input id="destination" type="text" name="destination" class="form-control" placeholder="Where would you like to go">
+      <!-- name is destination -->
     </div>
   </div>
 
@@ -24,7 +25,7 @@
     <div class="col-sm-8">
       <div class='input-group date' id="journey">
                     <input id="dateOfLeaving" onblur="dateOfLeavingValidation()" type='date' name="leaving" id="leave" class="form-control" />
-
+<!--  name is leaving-->
                 </div>
     </div>
   </div>
@@ -34,7 +35,7 @@
     <div class="col-sm-8">
       <div class='input-group date' id="return">
                     <input id="dateOfReturn" onblur="dateOfReturnValidation()" type='date' name="return" id="return" class="form-control" />
-
+<!--  name is returning-->
                 </div>
     </div>
   </div>
@@ -43,6 +44,7 @@
     <label for="description" class="col-sm-4 control-label">Say a few words about the trip</label>
     <div class="col-sm-8">
       <input type="datetime" name="description" class="form-control" id="description" placeholder="Feeling excited!!!">
+      <!--  name is description-->
     </div>
   </div>
 

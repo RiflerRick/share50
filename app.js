@@ -707,62 +707,6 @@ return year+"-"+month+"-"+day;
 }
 
 
-app.get("/toursCreate",function(req,res){
-var destination=req.query.destination;
-var leaving=req.query.leaving;
-var returning=req.query.return;
-var des=req.query.description;
-// console.log("\toursCreate GET:date of journey"+leaving);
-connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
-  var uid=results[0].uid;
-  var date=getDateToday();
-
-  connection.query("INSERT INTO tours(uid,Description,dateOfJourney,dateOfReturn,destination,popularity,timeCreated) VALUES (?,?,?,?,?,?,?)",[uid,des,leaving,returning,destination,1,date],function(err,results,fields){
-    if(err)
-    {
-      console.log(chalk.red("/toursCreate GET:could not insert into the database"+err.stack));
-
-      helper.renderPage(app,fs,res,io,connection,'tours',param);
-    }
-    else {
-
-      console.log(chalk.green("/toursCreate GET:successfully inserted into the database"));
-      param=setParam(req.session.email,uid);
-      helper.renderPage(app,fs,res,io,connection,'index',param);
-    }
-  });
-});
-
-});
-
-app.get("/partiesCreate",function(req,res){
-
-  var destination=req.query.destination;
-  var leaving=req.query.leaving;
-  var returning=req.query.return;
-  var des=req.query.description;
-
-  connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
-    var uid=results[0].uid;
-    var date=getDateToday();
-
-    connection.query("INSERT INTO party(uid,Description,start,end,destination,popularity,timeCreated) VALUES (?,?,?,?,?,?,?)",[uid,des,leaving,returning,destination,1,date],function(err,results,fields){
-      if(err)
-      {
-        console.log(chalk.red("/partiesCreate GET:could not insert into the database"+err.stack));
-        helper.renderPage(app,fs,res,io,connection,'parties',param);
-      }
-      else {
-
-        console.log(chalk.green("/partiesCreate GET:successfully inserted into the database"));
-        param=setParam(req.sesion.email,uid);
-        helper.renderPage(app,fs,res,io,connection,'index',param);
-      }
-    });
-  });
-});
-
-
 app.get("/dateSent",function(req,res){
   //this is actually gonna check from the database if the user has any party or tour scheduled
   console.log(chalk.blue("/dateSent GET: ajax request recieved"));
@@ -804,9 +748,9 @@ app.get('/friendList',function(req,res){
   //so according to the email of of the session that will be existing in the server the friendlist of the person will be prepared and sent
   connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
     var id=results[0].uid;
-    connection.query("SELECT users.email,users.name FROM friends INNER JOIN users ON (friends.uid=users.uid OR friends.fuid=users.uid) WHERE (friends.uid=? OR friends.fuid=?) AND friends.isAccepted=1",[id,id],function(err,results,fields){
+    connection.query("SELECT users.uid,users.email,users.name FROM friends INNER JOIN users ON (friends.uid=users.uid OR friends.fuid=users.uid) WHERE (friends.uid=? OR friends.fuid=?) AND friends.isAccepted=1",[id,id],function(err,results,fields){
       var friendList={};
-      var i,name,email,uid;
+      var i,name,email,uid,id;
       friendList["elements"]=Object.keys(results).length;
       for(i=0;i<Object.keys(results).length;i++)
       {
@@ -815,25 +759,146 @@ app.get('/friendList',function(req,res){
         {
           name="name"+i;
           email="email"+i;
+          id="id"+i;
           friendList[name]=results[i].name;
+          friendList[id]=results[i].uid;
           friendList[email]=results[i].email;
+
         }
       }
+      //here we have the array called friendList, lets store that data in the session object
       //here we only send the ids of the friends
       // helper.sendFriendList(chalk,connection,res,friendList);
+      req.session.friendList=friendList;
       res.send(JSON.stringify(friendList));
     });
   });
 });
 
 
-app.get('/partiesCreate',function(req,res){
+app.post('/partiesCreate',function(req,res){
+  //partiesCreate is a get request originated from tours.ejs page.
+  //so the following are the informations that we receive: destination, leaving, return, description and a bunch of emails.
+  var destination=req.body.destination;
+  var leavingDate=req.body.leaving;
+  var returnDate=req.body.return;
+  var description=req.body.description;
+  //first lets check how many friends does the guy have
+  connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+    var uid=results[0].uid;
+    var randomVal=Math.random();
+    connection.query("INSERT INTO party(uid,Description,start,end,destination,popularity,randomVal,isOver) VALUES (?,?,?,?,?,0,?,0) ",[uid,description,leavingDate,returnDate,destination,randomVal],function(err,results,fields){
+      if(err)
+      {
+        console.log(chalk.red("could not enter into the database:"+err.stack));
+      }
+      else
+      console.log(chalk.green("successfully entered into the database:"));
+    });
+    connection.query("SELECT * FROM party WHERE uid=? AND randomVal=?",[uid,randomVal],function(err,results,fields){
+      var pid=results[0].pid;
+      var friendList=req.session.friendList;
+      var checkBoxName;
+      for(var key in friendList)
+      {
+        if(key.substring(0,2).localeCompare("id")==0)
+        {
+          console.log(chalk.blue("friendList value is:"+friendList[key]));
+          checkBoxName=friendList[key];
+          var value=req.body[checkBoxName];
+          if(value==1)
+          {
+            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a value of 1"));
+            //do not add as a visitor
+          }
+          else {
+            //add as a visitor
+            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a value of 0"));
+            connection.query("INSERT INTO visitor(pid,uid,visitorId,isAccepted) VALUES (?,?,?,0)",[pid,uid,checkBoxName],function(err,results,fields){
+              if(err)
+              {
+                console.log(chalk.red("error inserting into the database:"+err.stack));
+              }
+              else
+              console.log(chalk.green("/partiesCreate get: successfully inserted id:"+checkBoxName+" visitor into visitor table"));
+            });
+          }
+        }
+      }
+    });
+    });
+    /*connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(errNew,resultsNew,fieldsNew){
+      var userid=resultsNew[0].uid;
+      param=setParam(req.session.email,userid);
+      helper.renderPage(app,fs,res,io,connection,'index',param);
+    });*/
+    //here also we need to redirect the user to a specific page in order to simply tell the user that a party has been created.
+    var pageName="PartyCreated";
+    res.render('partyCreated',{page:pageName});
 
+  });
+app.post('/toursCreate',function(req,res){
 
+  var destination=req.body.destination;
+  console.log(chalk.blue("destination accepted:"+destination));
+  var leavingDate=req.body.leaving;
+console.log(chalk.blue("leaving date accepted:"+leavingDate));
+  var returnDate=req.body.return;
+  console.log(chalk.blue("returnDate  accepted:"+returnDate));
+  var description=req.body.description;
+  console.log(chalk.blue("description accepted:"+description));
+  //first lets check how many friends does the guy have
+  connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
+    var uid=results[0].uid;
+    var randomVal=Math.random();
+    connection.query("INSERT INTO tours(uid,Description,dateOfJourney,dateOfReturn,destination,popularity,randomVal,isOver) VALUES (?,?,?,?,?,0,?,0) ",[uid,description,leavingDate,returnDate,destination,randomVal],function(err,results,fields){
+      if(err)
+      {
+        console.log(chalk.red("could not enter into the database:"+err.stack));
+      }
+      else
+      console.log(chalk.green("successfully entered into the database:"));
 });
+    connection.query("SELECT * FROM tours WHERE uid=? AND randomVal=?",[uid,randomVal],function(err,results,fields){
+      //error point possible...
+      var tid=results[0].tid;
 
-app.get('/toursCreate',function(req,res){
-
+      var friendList=req.session.friendList;
+      var checkBoxName;
+      for(var key in friendList)
+      {
+        // console.log(chalk.blue(""));
+        if(key.substring(0,2).localeCompare("id")==0)
+        {
+          console.log(chalk.blue("friendList value is:"+friendList[key]));
+          checkBoxName=friendList[key];
+          var value=req.body[checkBoxName];
+          
+          if(value==1)
+          {
+            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a value of 1"));
+            //do not add as a visitor
+            //seems like when the value is 1 it means it is not selected whereas when the value is 0 it is selected.
+          }
+          else {
+            //add as a visitor
+            console.log(chalk.blue("friendList[key]:"+friendList[key]+"has a value of 0"));
+            connection.query("INSERT INTO companion(tid,uid,comId,isAccepted) VALUES (?,?,?,0)",[tid,uid,checkBoxName],function(err,results,fields){
+              console.log(chalk.green("/toursCreate get: successfully inserted id:"+checkBoxName+" companion into companion table"));
+            });
+          }
+        }
+      }
+      });
+    });
+    /*connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(errNew,resultsNew,fieldsNew){
+      var userid=resultsNew[0].uid;
+      param=setParam(req.session.email,userid);
+      helper.renderPage(app,fs,res,io,connection,'index',param);
+    });*/
+    // a page needs to be rendered here that simply tells us that the tour has been created and people will be notified
+    var pageName="tourCreated";
+    res.render('tourCreated',{page:pageName});
 });
 
 app.get('/logout',function(req,res){
