@@ -12,6 +12,7 @@ $.getJSON(url,function(data){
       var uid,name,email;
       if(invites!=0)
       {
+        document.getElementById("wellContent").style.display="block";
         element=document.createElement("div");
         element.setAttribute("class","alert alert-info");
         elementNode=document.createTextNode("Friends who wanted you to accompany them");
@@ -58,6 +59,7 @@ $.getJSON(url,function(data){
       }
       if(ownTours!=0)
       {
+        document.getElementById("tourDiv").style.display="block";
         var element,elementNode;
         element=document.createElement("div");
         element.setAttribute("class","alert alert-info");
@@ -129,10 +131,15 @@ $.getJSON(url,function(data){
       }
       if(invites==0&&ownTours==0)
       {
-
+        document.getElementById("tourDiv").style.display="block";
+        var element=document.createElement("div");
+        element.setAttribute("class","alert alert-warning");
+        var elementNode=document.createTextNode("You do not seem to tour a lot...You should actually get involved");
+        element.appendChild(elementNode);
+        document.getElementById("wellContent").appendChild(element);
       }
 
-  },1000);//1000 miliseconds later page loads
+  },250);//1000 miliseconds later page loads
 
 
 });

@@ -997,11 +997,11 @@ app.get('/checkMyParties',function(req,res){
       response["invites"]=0;
     }
 
-  });
+
 
   connection.query("SELECT * FROM party WHERE uid=?",[uid],function(err,results,fields){
     var num=Object.keys(results).length;
-    response["number"]=num;//tells us the number of tours conducted.
+    response["ownParties"]=num;//tells us the number of tours conducted.
     var destination,dateOfJourney,dateOfReturn,description;
     var i=0;
     while(i<num)
@@ -1016,9 +1016,10 @@ app.get('/checkMyParties',function(req,res){
       response[description]=results[i].Description;
       i++;
     }
+    res.send(JSON.stringify(response));
+  });
 
   });
-  res.send(JSON.stringify(response));
 });
 
 app.get('/logout',function(req,res){
