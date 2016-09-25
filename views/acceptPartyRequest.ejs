@@ -5,17 +5,28 @@
 <% include header %>
 
 <body>
-  <script src="myTours.js" type="text/javascript"></script>
+  <!-- <script src="myTours.js" type="text/javascript"></script> -->
 
   <div class="panel panel-default" id="dynComponent">
     <div class="panel-body">
 
       <!-- <div id="tourAlert" class="alert alert-warning" role="alert" style="visibility:hidden;"></div> -->
       <!-- <div id="partyAlert" class="alert alert-warning" role="alert" style="visibility:hidden;"></div> -->
-      <div class="well" id="wellContent" style="display:none;">
+      <div class="well" id="wellContent" style="display:block;">
         <!-- <button id="wellContentButton" >Click me</button> -->
 
       <!--  The above technique is the way we include js files into the ejs template-->
+      <div style="display:<%= displayParty %>">
+        <h3 style="margin-left:auto;margin-right:auto;">Visiting place</h3>
+        <h2><%= destination %></h2>
+        <h4>Journey: <%= dateOfJourney %> , Return: <%= dateOfReturn %><h4>
+          <h4><%= description %></h4>
+
+          <a role="button" style="margin-left:400px;" href="partyAccepted?uid=<%= uid %>&visitorId=<%= visitorId %>&pid=<%= pid %>" class="btn btn-primary">Accept Tour</a>
+      </div>
+    <div class="alert alert-warning" style="display:<%= displayOver %>">
+      <h3 style="margin-left:auto;margin-right:auto;width:500px;">This party is over!!! Better check out early next time!!!</h3>
+    </div>
     </div>
     <div id="tourDiv" style="display:none;">
 

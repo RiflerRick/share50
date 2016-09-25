@@ -1022,6 +1022,75 @@ app.get('/checkMyParties',function(req,res){
   });
 });
 
+app.get('/acceptTourRequest',function(req,res){
+//this is gonna render a page called acceptTourRequest
+
+//it may be possible that the corresponding tour has expired and hence there is no point of keeping that request, in which
+//case the user will be alerted of the same.
+var requestUid=req.query.uid;//this is the uid of the guy who has sent the request.
+var uid=req.session.uid;
+connection.query("SELECT tours.tid,tours.Description,tours.dateOfJourney,tours.dateOfReturn,tours.destination,tours.isOver FROM companion INNER JOIN tours WHERE (companion.uid=? AND companion.comId=? AND companion.tid=tours.tid)",[requestUid,uid],function(err,results,fields){
+  var today=new Date();
+  var tid=results[0].tid;
+  var destination=results[0].destination;
+  uid=requestUid;
+  var comId=req.session.uid;
+  var dateOfJourney=(results[0].dateOfJourney);
+  var dateOfReturn=(results[0].dateOfReturn);
+  dateOfJourney=dateOfJourney.toString();
+  dateOfReturn=dateOfReturn.toString();
+  dateOfJourney=dateOfJourney.substring(0,10);
+  dateOfReturn=dateOfReturn.substring(0,10);
+  var description=results[0].Description;
+  var pageName="accept tour request";
+if(results[0].isOver==1)
+{
+  //day has passed
+
+  var displayOver="block;";
+  var displayTour="none;";
+}
+else {
+  var displayOver="none;";
+  var displayTour="block;";
+}
+res.render("acceptTourRequest",{page:pageName,displayOver:displayOver,displayTour:displayTour,destination:destination,description:description,dateOfJourney:dateOfJourney,dateOfReturn:dateOfReturn,uid:uid,comId:comId,tid:tid})
+});
+});
+
+app.get('/acceptPartyRequest',function(req,res){
+
+  var requestUid=req.query.uid;//this is the uid of the guy who has sent the request.
+  var uid=req.session.uid;
+  connection.query("SELECT party.pid,party.Description,party.start,party.end,party.destination,party.isOver FROM visitor INNER JOIN party WHERE (visitor.uid=? AND visitor.visitorId=? AND visitor.pid=party.pid)",[requestUid,uid],function(err,results,fields){
+    var today=new Date();
+    var pid=results[0].pid;
+    var destination=results[0].destination;
+    uid=requestUid;
+    var visitorId=req.session.uid;
+    var dateOfJourney=(results[0].start).toString();
+    var dateOfReturn=(results[0].end).toString();
+    dateOfJourney=dateOfJourney.substring(0,10);
+    dateOfReturn=dateOfReturn.substring(0,10);
+    var description=results[0].Description;
+    var pageName="accept party request";
+  if(results[0].isOver==1)
+  {
+    //day has passed
+
+    var displayOver="block;";
+    var displayParty="none;";
+  }
+  else {
+    var displayOver="none;";
+    var displayParty="block;";
+  }
+  res.render("acceptPartyRequest",{page:pageName,displayOver:displayOver,displayParty:displayParty,destination:destination,description:description,dateOfJourney:dateOfJourney,dateOfReturn:dateOfReturn,uid:uid,visitorId:visitorId,pid:pid})
+  });
+});
+
+
+
 app.get('/logout',function(req,res){
   if(req.session&&req.session.email)
   {
