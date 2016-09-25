@@ -1,0 +1,27 @@
+<% include initials %>
+<title id="titleValue"><%= page %></title>
+</head>
+<!-- one important factor here is that you cannot -->
+<% include header %>
+
+<body>
+
+  <div class="panel panel-default" id="dynComponent">
+    <div class="panel-body">
+      <div class="well" id="wellContent">
+        <!-- <button id="wellContentButton" >Click me</button> -->
+        <div class="alert alert-success">
+          <h3>Tour Accepted</h3>
+          <h5>You can now share your favourite tour moments</h5>
+        </div>
+      </div>
+
+      <!--  The above technique is the way we include js files into the ejs template-->
+    </div>
+  </div>
+  <!-- <script type="text/javascript" src="indexContentGenerator.js"></script> -->
+  <!-- <script type="text/javascript" src="indexPage.js"></script> -->
+</body>
+
+<% include footer %>
+</html>

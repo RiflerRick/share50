@@ -9,7 +9,7 @@ $.getJSON(url,function(data){
     var ownParties=data["ownParties"];
     // alert("check");
       var element,elementHeading,elementNode,elementBody,elementBodyNode,elementCheckBox,elementCheckBoxNode;
-      var uid,name,email;
+      var uid,name,email,pid;
       if(invites!=0)
       {
         document.getElementById("wellContent").style.display="block";
@@ -26,6 +26,8 @@ $.getJSON(url,function(data){
           break;
           if(key.substring(0,3).localeCompare("uid")==0)
           uid=data[key];
+          if(key.substring(0,3).localeCompare("pid")==0)
+          pid=data[key];
           if(key.substring(0,4).localeCompare("name")==0)
           name=data[key];
           if(key.substring(0,5).localeCompare("email")==0)
@@ -42,7 +44,7 @@ $.getJSON(url,function(data){
             elementCheckBox=document.createElement("a");
             elementCheckBox.setAttribute("role","button");
             elementCheckBox.setAttribute("class","btn btn-primary");
-            elementCheckBox.setAttribute("href","acceptPartyRequest?uid="+uid);
+            elementCheckBox.setAttribute("href","acceptPartyRequest?uid="+uid+"&pid="+pid);
             elementCheckBox.style.marginLeft="400px";
             elementCheckBoxNode=document.createTextNode("Check out");
             elementCheckBox.appendChild(elementCheckBoxNode);
@@ -143,7 +145,7 @@ $.getJSON(url,function(data){
         element.setAttribute("class","alert alert-warning");
         var elementNode=document.createTextNode("You do not seem to party a lot...You should actually get involved");
         element.appendChild(elementNode);
-        document.getElementById("wellContent").appendChild(element);
+        document.getElementById("partyDiv").appendChild(element);
       }
 
   },250);//1000 miliseconds later page loads

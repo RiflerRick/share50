@@ -9,7 +9,7 @@ $.getJSON(url,function(data){
     var ownTours=data["ownTours"];
     // alert("check");
       var element,elementHeading,elementNode,elementBody,elementBodyNode,elementCheckBox,elementCheckBoxNode;
-      var uid,name,email;
+      var uid,name,email,tid;
       if(invites!=0)
       {
         document.getElementById("wellContent").style.display="block";
@@ -26,6 +26,8 @@ $.getJSON(url,function(data){
           break;
           if(key.substring(0,3).localeCompare("uid")==0)
           uid=data[key];
+          if(key.substring(0,3).localeCompare("tid")==0)
+          tid=data[key];
           if(key.substring(0,4).localeCompare("name")==0)
           name=data[key];
           if(key.substring(0,5).localeCompare("email")==0)
@@ -41,7 +43,7 @@ $.getJSON(url,function(data){
             elementBodyNode=document.createTextNode(email);
             elementCheckBox=document.createElement("a");
             elementCheckBox.setAttribute("role","button");
-            elementCheckBox.setAttribute("href","acceptTourRequest?uid="+uid);
+            elementCheckBox.setAttribute("href","acceptTourRequest?uid="+uid+"&tid="+tid);
             elementCheckBox.setAttribute("class","btn btn-primary");
             elementCheckBoxNode=document.createTextNode("Check out");
             elementCheckBox.appendChild(elementCheckBoxNode);
@@ -140,7 +142,7 @@ $.getJSON(url,function(data){
         element.setAttribute("class","alert alert-warning");
         var elementNode=document.createTextNode("You do not seem to tour a lot...You should actually get involved");
         element.appendChild(elementNode);
-        document.getElementById("wellContent").appendChild(element);
+        document.getElementById("tourDiv").appendChild(element);
       }
 
   },250);//1000 miliseconds later page loads

@@ -910,23 +910,28 @@ app.get('/checkMyTours',function(req,res){
   console.log("/checkMyTours: uid returned from session object:"+uid);
   //first we need to tell the user if there are any tours to which he is invited
   var response={};
-  connection.query("SELECT * FROM companion WHERE comId=? AND isAccepted=0",[uid],function(err,results,fields){
+  connection.query("SELECT users.uid,users.name,users.email,companion.tid FROM companion INNER JOIN users WHERE (comId=? AND isAccepted=0 AND companion.uid=users.uid)",[uid],function(err,results,fields){
+    if(err)
+    console.log(chalk.red("error in database con:"+err.stack));
     var num=Object.keys(results).length;
-    var id,i,name,email;
+    var id,i,name,email,tid;
     i=0;
     if(num>0)
     {
       response["invites"]=num;
       while(num>0)
       {
+
         id="uid"+i;
+        tid="tid"+i;
         name="name"+i;
         email="email"+i;
+
         response[id]=results[i].uid;
-        connection.query("SELECT * FROM users WHERE uid=?",[results[i].uid],function(errNew,resultsNew,fieldsNew){
-          response[name]=resultsNew[0].name;
-          response[email]=resultsNew[0].email;
-        });
+        response[tid]=results[i].tid;
+        response[name]=results[i].name;
+        response[email]=results[i].email;
+
         i++;
         num--;
       }
@@ -961,8 +966,32 @@ app.get('/checkMyTours',function(req,res){
       i++;
 
     }
-    // helper.printJSON(response);//user defined function.
-    res.send(JSON.stringify(response));
+    connection.query("SELECT * FROM tours INNER JOIN companion WHERE (companion.comId=? AND companion.tid=tours.tid AND companion.isAccepted=1)",[uid],function(errNew,resultsNew,fieldsNew){
+      if(Object.keys(resultsNew).length>0){
+
+        num=num+Object.keys(resultsNew).length;
+        response["ownTours"]=num;
+        var j=0;
+        while(i<num)
+        {
+
+          destination="dest"+i;
+          dateOfJourney="dateOfJourney"+i;
+          dateOfReturn="dateOfReturn"+i;
+          description="description"+i;
+          response[destination]=resultsNew[j].destination;
+          response[dateOfJourney]=resultsNew[j].dateOfJourney;
+          response[dateOfReturn]=resultsNew[j].dateOfReturn;
+          response[description]=resultsNew[j].Description;
+          i++;j++;
+
+        }
+
+      // helper.printJSON(response);//user defined function.
+
+      }
+      res.send(JSON.stringify(response));
+    });
   });
   });
 
@@ -972,9 +1001,9 @@ app.get('/checkMyParties',function(req,res){
   var uid=req.session.uid;
   var response={};
 
-  connection.query("SELECT * FROM visitor WHERE visitorId=? AND isAccepted=0",[uid],function(err,results,fields){
+  connection.query("SELECT users.uid,users.name,users.email,visitor.pid FROM visitor INNER JOIN users WHERE (visitorId=? AND isAccepted=0 AND visitor.uid=users.uid)",[uid],function(err,results,fields){
     var num=Object.keys(results).length;
-    var id,i,name,email;
+    var id,i,name,email,pid;
     i=0;
     if(num>0)
     {
@@ -982,13 +1011,14 @@ app.get('/checkMyParties',function(req,res){
       while(num>0)
       {
         id="uid"+i;
+        pid="pid"+i;
         name="name"+i;
         email="email"+i;
         response[id]=results[i].uid;
-        connection.query("SELECT * FROM users WHERE uid=?",[results[i].uid],function(errNew,resultsNew,fieldsNew){
-          response[name]=resultsNew[0].name;
-          response[email]=resultsNew[0].email;
-        });
+        response[pid]=results[i].pid;
+        response[name]=results[i].name;
+        response[email]=results[i].email;
+
         i++;
         num--;
       }
@@ -1016,7 +1046,28 @@ app.get('/checkMyParties',function(req,res){
       response[description]=results[i].Description;
       i++;
     }
-    res.send(JSON.stringify(response));
+    connection.query("SELECT * FROM party INNER JOIN visitor WHERE (visitor.visitorId=? AND visitor.pid=party.pid AND visitor.isAccepted=1)",[uid],function(errNew,resultsNew,fieldsNew){
+      if(Object.keys(resultsNew).length>0)
+      {
+        num=num+Object.keys(resultsNew).length;
+        response["ownParties"]=num;
+        var j=0;
+        while(i<num)
+        {
+          destination="dest"+i;
+          dateOfJourney="dateOfJourney"+i;
+          dateOfReturn="dateOfReturn"+i;
+          description="description"+i;
+          response[destination]=resultsNew[j].destination;
+          response[dateOfJourney]=resultsNew[j].start;
+          response[dateOfReturn]=resultsNew[j].end;
+          response[description]=resultsNew[j].Description;
+          i++;j++;
+        }
+
+      }
+      res.send(JSON.stringify(response));
+    });
   });
 
   });
@@ -1024,12 +1075,14 @@ app.get('/checkMyParties',function(req,res){
 
 app.get('/acceptTourRequest',function(req,res){
 //this is gonna render a page called acceptTourRequest
-
+console.log(chalk.blue("acceptTourRequest get: inside function"));
 //it may be possible that the corresponding tour has expired and hence there is no point of keeping that request, in which
 //case the user will be alerted of the same.
 var requestUid=req.query.uid;//this is the uid of the guy who has sent the request.
 var uid=req.session.uid;
-connection.query("SELECT tours.tid,tours.Description,tours.dateOfJourney,tours.dateOfReturn,tours.destination,tours.isOver FROM companion INNER JOIN tours WHERE (companion.uid=? AND companion.comId=? AND companion.tid=tours.tid)",[requestUid,uid],function(err,results,fields){
+var tid=req.query.tid;
+// "SELECT tours.tid,tours.Description,tours.dateOfJourney,tours.dateOfReturn,tours.destination,tours.isOver FROM companion INNER JOIN tours WHERE (companion.uid=? AND companion.comId=? AND companion.tid=? AND companion.tid=tours.tid)"
+connection.query("SELECT * FROM  tours WHERE tid=?",[tid],function(err,results,fields){
   var today=new Date();
   var tid=results[0].tid;
   var destination=results[0].destination;
@@ -1059,10 +1112,12 @@ res.render("acceptTourRequest",{page:pageName,displayOver:displayOver,displayTou
 });
 
 app.get('/acceptPartyRequest',function(req,res){
-
+  console.log(chalk.blue("acceptPartyRequest get: inside function"));
   var requestUid=req.query.uid;//this is the uid of the guy who has sent the request.
   var uid=req.session.uid;
-  connection.query("SELECT party.pid,party.Description,party.start,party.end,party.destination,party.isOver FROM visitor INNER JOIN party WHERE (visitor.uid=? AND visitor.visitorId=? AND visitor.pid=party.pid)",[requestUid,uid],function(err,results,fields){
+  var pid=req.query.pid;
+  // "SELECT party.pid,party.Description,party.start,party.end,party.destination,party.isOver FROM visitor INNER JOIN party WHERE (visitor.uid=? AND visitor.visitorId=? AND visitor.pid=? AND visitor.pid=party.pid)"
+  connection.query("SELECT * FROM party WHERE pid=?",[pid],function(err,results,fields){
     var today=new Date();
     var pid=results[0].pid;
     var destination=results[0].destination;
@@ -1089,7 +1144,46 @@ app.get('/acceptPartyRequest',function(req,res){
   });
 });
 
+app.get('/tourAccepted',function(req,res){
+//here u get as query uid,comId and tid
+//simply we update the database of companion here where we just uodate the column of isAccepted to 1
+//also we make a tour for that person
+console.log(chalk.blue("/tourAccepted get: inside function"));
+var uid=req.query.uid;
+var comId=req.query.comId;//this is the same as req.session.uid;
+var tid=req.query.tid;
+connection.query("UPDATE companion SET isAccepted=1 WHERE (uid=? AND comId=? AND tid=?)",[uid,comId,tid],function(err,results,fields){
+  if(err)
+  {
+    console.log(chalk.red("/tourAccepted: could not update companion"+err.stack));
+  }
+  else {
+    console.log(chalk.green("/tourAccepted: successsfully updated companion"));
+  }
+});
 
+var pageName="tour Accepted";
+res.render("tourAcceptedNotify",{page:pageName});
+});
+
+app.get('/partyAccepted',function(req,res){
+  //here u get as query uid, visitorId and pid
+  console.log(chalk.blue("/partyAccepted get: inside function"));
+  var uid=req.query.uid;
+  var visitorId=req.query.visitorId;
+  var pid=req.query.pid;
+  connection.query("UPDATE visitor SET isAccepted=1 WHERE (uid=? AND visitorId=? AND pid=?)",[uid,visitorId,pid],function(err,results,fields){
+    if(err)
+    {
+      console.log(chalk.red("/partyAccepted: could not update visitor"+err.stack));
+    }
+    else {
+      console.log(chalk.green("/partyAccepted: successsfully updated visitor"));
+    }
+  });
+  var pageName="party Accepted";
+  res.render('partyAcceptedNotify',{page:pageName});
+});
 
 app.get('/logout',function(req,res){
   if(req.session&&req.session.email)
