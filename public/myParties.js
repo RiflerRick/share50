@@ -8,7 +8,7 @@ $.getJSON(url,function(data){
     var invites=data["invites"];
     var ownParties=data["ownParties"];
     // alert("check");
-      var element,elementHeading,elementNode,elementBody,elementBodyNode,elementCheckBox;
+      var element,elementHeading,elementNode,elementBody,elementBodyNode,elementCheckBox,elementCheckBoxNode;
       var uid,name,email;
       if(invites!=0)
       {
@@ -39,10 +39,13 @@ $.getJSON(url,function(data){
             elementBody.setAttribute("class","panel-body");
             elementNode=document.createTextNode(name);
             elementBodyNode=document.createTextNode(email);
-            elementCheckBox=document.createElement("input");
-            elementCheckBox.setAttribute("type","checkbox");
+            elementCheckBox=document.createElement("a");
+            elementCheckBox.setAttribute("role","button");
+            elementCheckBox.setAttribute("class","btn btn-primary");
+            elementCheckBox.setAttribute("href","acceptPartyRequest?uid="+uid);
             elementCheckBox.style.marginLeft="400px";
-            elementCheckBox.setAttribute("name",uid);
+            elementCheckBoxNode=document.createTextNode("Check out");
+            elementCheckBox.appendChild(elementCheckBoxNode);
 
             //now the linking
 
