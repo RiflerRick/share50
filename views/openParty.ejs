@@ -1,5 +1,6 @@
 <% include initials %>
 <title id="titleValue"><%= page %></title>
+<link rel="stylesheet" type="text/css" href="dropzone.css">
 </head>
 <!-- one important factor here is that you cannot -->
 <% include header %>
@@ -14,8 +15,14 @@
         <!-- <button id="wellContentButton" >Click me</button> -->
 
       </div>
-      <form action="/picUploadParty?pid=<%= pid %>" class="dropzone" id="my-awesome-dropzone" style="display:<%= live %>;"></form>
-      <!--  The above technique is the way we include js files into the ejs template-->
+      <form action="/picUploadParty" class="dropzone" id="demo-upload" style="display:<%= live %>;">
+        <span class="dz-default dz-message">
+          Drop  Pics
+        </span>
+
+      </form>
+      <!-- <input type="file" multiple="multiple" class="dz-hidden-input"> -->
+          <!--  The above technique is the way we include js files into the ejs template-->
     </div>
   </div>
   <!-- <script type="text/javascript" src="indexContentGenerator.js"></script> -->

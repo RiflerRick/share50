@@ -1,6 +1,6 @@
 <% include initials %>
 <title id="titleValue"><%= page %></title>
-
+<link rel="stylesheet" type="text/css" href="dropzone.css">
 </head>
 <!-- one important factor here is that you cannot -->
 <% include header %>
@@ -8,6 +8,7 @@
 <body>
   <script src="dropzone.js" type="text/javascript"></script>
   <script src="openTour.js" type="text/javascript"></script>
+  <!-- <script src="dropzoneUpload.js" type="text/javascript"></script> -->
   <div class="panel panel-default" id="dynComponent">
     <div class="panel-body">
 
@@ -16,7 +17,10 @@
 
 
       </div>
-      <form action="/picUploadTour?tid=<%= tid %>" class="dropzone" id="my-awesome-dropzone" style="display:<%= live %>;"></form>
+      <form action="/picUploadTour" class="dropzone dz-clickable" id="demo-upload" style="display:<%= live %>;" enctype="multipart/form-data">
+        <!-- <div style="margin-left:250px;" class="alert alert-primary">Drop pics</div>; -->
+      </form>
+      <!-- <input type="file" multiple="multiple" class="dz-hidden-input"> -->
       <!--  The above technique is the way we include js files into the ejs template-->
     </div>
   </div>

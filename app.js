@@ -515,6 +515,9 @@ app.post('/signUp',function(req,res){
           }
           else {
 
+            //another thing to be inserted is user data in userimages field.
+            connection.query("INSERT INTO userimages VALUES (?,?)",[id,0],function(errN,resultsN,fieldsN){});
+
               console.log(chalk.green("/signUp POST:successfully inserted into database"));//DEBUG
               //after we get the details inside the database we need to start a session and redirect the user to the index.ejs view.
 
@@ -557,6 +560,45 @@ var storage=multer.diskStorage({destination:function(req,file,cb){
 
 }});
 var upload = multer({ storage:storage });
+
+//so below we are essentially defining 2 different things, the destination and the filenames of the corresponding images
+
+var imageStorageTours=multer.diskStorage({
+  destination:function(req,file,cb){
+    cb(null,'public/images/tours');
+  },
+  filename:function(req,file,cb){
+    var uid=req.session.uid;
+    var images=0;
+    var name;
+    connection.query("SELECT * FROM userimages WHERE uid=?",[uid],function(err,results,fields){
+      images=results[0].noOfImages+1;
+      name=uid.toString()+images.toString();
+      cb(null,name);
+    });
+  }
+});
+
+var uploadImageTours=multer({storage:imageStorageTours});
+
+
+var imageStorageParties=multer.diskStorage({
+  destination:function(req,file,cb){
+    cb(null,'public/images/parties');
+  },
+  filename:function(req,file,cb){
+    var uid=req.session.uid;
+    var images=0;
+    var name;
+    connection.query("SELECT * FROM userimages WHERE uid=?",[uid],function(err,results,fields){
+      images=results[0].noOfImages+1;
+      name=uid.toString()+images.toString();
+      cb(null,name);
+    });
+  }
+});
+
+var uploadImageParties=multer({storage:imageStorageParties});
 
 
 app.get('/profile',function(req,res){
@@ -1286,12 +1328,99 @@ function isTourLive(start,end)
   return true;
 }
 
-app.get('/picUploadTour',function(req,res){
+/*
+app.post("/profilePicUpload",upload.single('pic'),function(req,res){//upload.single(<fieldname>) fieldname is the name of the field from wehere we are trying to upload the file(form field name)
+  var pic=req.file;//this is an object that contains attributes like path that we can use for storing in the database
+  // console.log("")
+  // console.log("mime type currently is:"+pic.mimetype);
+  //we can use a modeule mmmagic of express that can check mime types of files, make sure to see this from github
+  if(pic==undefined)
+  {
+    var pageName="Hey check out";
+    res.render("fileNotChosen",{page:pageName});
+    return;
+  }
+
+  connection.query("UPDATE users SET profilePicPath=?,profilePicMime=? WHERE email=?",[pic.filename,pic.mimetype,req.session.email],function(err,results,fields){
+    if(err)
+    {
+      console.log(chalk.red("error inserting into database:"+err.stack));
+    }
+    else {
+      console.log(chalk.green("successfully inserted into database"));
+      connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(errNew,resultsNew,fieldsNew){
+        var userid=resultsNew[0].uid;
+        param=setParam(req.session.email,userid);
+        helper.renderPage(app,fs,res,io,connection,'index',param);
+      });
+
+    }
+  });
+});
+*/
+
+app.post('/picUploadTour',uploadImageTours.single('file'),function(req,res){//here file is the fieldname
 //handling pic uploads
+var tid=tourId;
+var image=req.file;//current name of the file.
+var type=req.file.mimetype;
+if(image==undefined)
+{
+  var pageName="undefined Image";
+  console.log("undefined file  and hence this msg");
+  // res.render('undefinedImage',{pageLpageName});
+}
+if((type.localeCompare("image/jpg")==0)||(type.localeCompare('image/jpeg')==0)||(type.localeCompare('image/png')==0))
+{
+  connection.query("INSERT INTO images (uid,path,tid) VALUES (?,?,?)",[req.session.uid,req.file.filename,tid],function(errNew,resultsNew,fieldsNew){
+      if(errNew)
+      {
+        console.log(chalk.red("error inserting into images table"+err.stack));
+      }
+      else {
+        console.log(chalk.green("successfully inserted into images table"));
+      }
+
+    });
+}
+else {
+  var pageName="Error uploading file";
+  res.render('imageUploadError',{page:pageName});
+}
+
+
 });
 
-app.get('picUploadParty',function(req,res){
+app.post('picUploadParty',function(req,res){
 //handling pic uploads
+var pid=pidId;
+var fileName=req.file.displayImage.name;//current name of the file.
+
+var imageNumber;
+var type=req.file.displayImage.type;
+if((type.localeCompare("image/jpg")==0)||(type.localeCompare('image/jpeg')==0)||(type.localeCompare('image/png')==0))
+{
+  var pageName="Error uploading file";
+  res.render('imageUploadError',{page:pageName});
+}
+connection.query("SELECT * FROM userimages WHERE uid=?",[req.session.uid],function(err,results,fields){
+  imageNumber=results[0].noOfImages;
+  fileName=fileName+req.session.uid.toString()+(imageNumber+1).toString();//in this way the names of the files will never be the same
+  connection.query("INSERT INTO images (uid,path,tid,pid) VALUES (?,?,?,?)",[req.session.uid,fileName,NULL,pid],function(errNew,resultsNew,fieldsNew){
+    if(errNew)
+    {
+      console.log(chalk.red("error inserting into images table"+err.stack));
+    }
+    else {
+      console.log(chalk.green("successfully inserted into images table"));
+    }
+    connection.query("UPDATE userimages SET noOfImages=? WHERE uid=?",[imageNumber+1,req.session.uid],function(err1,results1,fields1){
+
+    });
+  });
+
+});
+//now comes the real uploading deal
 });
 
 app.get('/openTourCheckPics',function(req,res){

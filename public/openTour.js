@@ -13,14 +13,15 @@ $.getJSON(url,function(data){
   {
     for (var key in data)
     {
-      if(i%4==0)
-      {
-        rowElement=document.createElement("div");
-        rowElement.setAttribute("class","row");
-        document.getElementById("wellContent").appendChild(rowElement);
-      }
       if(key.substring(0,3).localeCompare("src")==0)
       {
+        if(i%4==0)
+        {
+          rowElement=document.createElement("div");
+          rowElement.setAttribute("class","row");
+          document.getElementById("wellContent").appendChild(rowElement);
+        }
+
         colElement=document.createElement("div");
         colElement.setAttribute("class","col-xs-6 col-md-3");
         link=document.createElement("a");
@@ -34,8 +35,9 @@ $.getJSON(url,function(data){
         link.appendChild(image);
         colElement.appendChild(link);
         rowElement.appendChild(colElement);
+        i++;
       }
-      i++;
+
     }
   }
   else {
