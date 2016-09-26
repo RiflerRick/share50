@@ -73,7 +73,7 @@ $.getJSON(url,function(data){
         document.getElementById("partyDiv").appendChild(element);
 
         var elementRow,elementCol,elementImage,heading,headingContent,inner,innerContent,buttonElement,buttonNode,partition;
-        var dest,dateJ,dateR,description;
+        var dest,dateJ,dateR,description,pid;
         var i=0;
         for (var key in data)
         {
@@ -86,6 +86,10 @@ $.getJSON(url,function(data){
             /*partition=document.createElement("div");
             partition.style.width:"5px";
             document.getElementById("partyDiv").appendChild(partition);*/
+          }
+          if(key.substring(0,3).localeCompare("pid")==0)
+          {
+            pid=data[key];
           }
           if(key.substring(0,4).localeCompare("dest")==0)
           {
@@ -118,6 +122,7 @@ $.getJSON(url,function(data){
             innerContent=document.createTextNode("journey:"+dateJ+"; \n return:"+dateR+"\n "+description);
             buttonElement=document.createElement("a");
             buttonElement.setAttribute("class","btn btn-primary");
+            buttonElement.setAttribute("href","openParty?pid="+pid);
             buttonElement.setAttribute("role","button");
             buttonNode=document.createTextNode("Check out");
 

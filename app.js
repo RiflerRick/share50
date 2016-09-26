@@ -948,17 +948,17 @@ app.get('/checkMyTours',function(req,res){
     var num=Object.keys(results).length;
     console.log("number of tours returned"+num);
     response["ownTours"]=num;//tells us the number of tours conducted.
-    var destination,dateOfJourney,dateOfReturn,description;
+    var tid,dsestination,dateOfJourney,dateOfReturn,description;
     var i=0;
-
 
     while(i<num)
     {
-
+      tid="tid"+i;
       destination="dest"+i;
       dateOfJourney="dateOfJourney"+i;
       dateOfReturn="dateOfReturn"+i;
       description="description"+i;
+      response[tid]=results[i].tid;
       response[destination]=results[i].destination;
       response[dateOfJourney]=results[i].dateOfJourney;
       response[dateOfReturn]=results[i].dateOfReturn;
@@ -974,11 +974,12 @@ app.get('/checkMyTours',function(req,res){
         var j=0;
         while(i<num)
         {
-
+          tid="tid"+i;
           destination="dest"+i;
           dateOfJourney="dateOfJourney"+i;
           dateOfReturn="dateOfReturn"+i;
           description="description"+i;
+          response[tid]=resultsNew[j].tid;
           response[destination]=resultsNew[j].destination;
           response[dateOfJourney]=resultsNew[j].dateOfJourney;
           response[dateOfReturn]=resultsNew[j].dateOfReturn;
@@ -1032,14 +1033,16 @@ app.get('/checkMyParties',function(req,res){
   connection.query("SELECT * FROM party WHERE uid=?",[uid],function(err,results,fields){
     var num=Object.keys(results).length;
     response["ownParties"]=num;//tells us the number of tours conducted.
-    var destination,dateOfJourney,dateOfReturn,description;
+    var destination,dateOfJourney,dateOfReturn,description,pid;
     var i=0;
     while(i<num)
     {
+      pid="pid"+i;
       destination="dest"+i;
       dateOfJourney="dateOfJourney"+i;
       dateOfReturn="dateOfReturn"+i;
       description="description"+i;
+      response[pid]=results[i].pid;
       response[destination]=results[i].destination;
       response[dateOfJourney]=results[i].start;
       response[dateOfReturn]=results[i].end;
@@ -1054,10 +1057,12 @@ app.get('/checkMyParties',function(req,res){
         var j=0;
         while(i<num)
         {
+          pid="pid"+i;
           destination="dest"+i;
           dateOfJourney="dateOfJourney"+i;
           dateOfReturn="dateOfReturn"+i;
           description="description"+i;
+          response[pid]=resultsNew[j].pid;
           response[destination]=resultsNew[j].destination;
           response[dateOfJourney]=resultsNew[j].start;
           response[dateOfReturn]=resultsNew[j].end;
@@ -1183,6 +1188,146 @@ app.get('/partyAccepted',function(req,res){
   });
   var pageName="party Accepted";
   res.render('partyAcceptedNotify',{page:pageName});
+});
+
+var tourId;
+
+app.get('/openTour',function(req,res){
+  var tid=req.query.tid;
+  tourId=tid;//this is for refernce in the ajax request handling function
+  //so on opening this page the user actually gets to see the photos of the tour and also if the tour is live he gets to upload the photo.
+  /*
+  Instead of our main idea of segregating photos based on their various dates on which they were uploaded now we are doing to all together.
+  */
+  /*first query the database to check if the date on which we are opening is in between the date on which we had planned the tour, if yes
+  the user will actually be able to upload photos as well as view photos as necessary.
+  */
+  /*
+  for multiple file upload, we will use dropzone.js a library used for the purpose of easy multifile or rather multiphoto upload.
+  */
+
+  connection.query("SELECT * FROM tours WHERE tid=?",[tid],function(err,results,fields){
+    var dateOfJourney=results[0].dateOfJourney;
+    var dateOfReturn=results[0].dateOfReturn;
+    var flag=isTourLive(dateOfJourney,dateOfReturn);
+    var response;
+    if(flag==true)
+    {
+      response="block";
+    }
+    else {
+      response="none";
+    }
+    var pageName="Tour";
+    res.render('openTour',{page:pageName,live:response,tid:tid});
+
+  });
+
+});
+
+var partyId;
+
+app.get('/openParty',function(req,res){
+  var pid=req.query.pid;
+  partyId=pid;
+  connection.query("SELECT * FROM party WHERE pid=?",[pid],function(err,results,fields){
+    var dateOfJourney=results[0].start;
+    var dateOfReturn=results[0].end;
+    var flag=isTourLive(dateOfJourney,dateOfReturn);
+    var response;
+    if(flag==true)
+    {
+      response="block";
+    }
+    else {
+      response="none";
+    }
+    var pageName="Party";
+    res.render('openParty',{page:pageName,live:response,pid:pid});
+
+  });
+});
+
+function isTourLive(start,end)
+{
+  var date=new Date();
+  start=start.toString();
+  var startDay=start.substring(8,10);
+  startDay=parseInt(startDay);
+
+  var startMonth=start.substring(5,7);
+  startMonth=parseInt(startMonth);
+
+  var startYear=start.substring(0,4);
+  startYear=parseInt(startYear);
+
+  end=end.toString();
+  var endDay=end.substring(8,10);
+  endDay=parseInt(endDay);
+
+  var endMonth=end.substring(5,7);
+  endMonth=parseInt(endMonth);
+
+  var endYear=end.substring(0,4);
+  endYear=parseInt(endYear);
+
+  if(startYear>date.getFullYear()||endYear<date.getFullYear())
+  {
+    return false;
+  }
+  if(startMonth>(date.getMonth()+1)||endMonth<(date.getMonth()+1))
+  {
+    return false;
+  }
+  if(startDay>date.getDate()||endDay<date.getDate())
+  {
+    return false;
+  }
+  return true;
+}
+
+app.get('/picUploadTour',function(req,res){
+//handling pic uploads
+});
+
+app.get('picUploadParty',function(req,res){
+//handling pic uploads
+});
+
+app.get('/openTourCheckPics',function(req,res){
+//handling ajax request from openTour
+  var tid=tourId;
+  var path,num;
+  var response={};
+  connection.query("SELECT * FROM images WHERE tid=? ",[tid],function(err,results,fields){
+    num=Object.keys(results).length;
+    var i=0;
+    response["num"]=num;
+    while(i<num)
+    {
+      path="src"+i;
+      response[path]=results[i].path;
+    }
+    res.send(JSON.stringify(response));
+  });
+});
+
+app.get('/openPartyCheckPics',function(req,res){
+  //handling ajax request from openParty
+  var pid=partyId;
+  var path,num;
+  var response={};
+  connection.query("SELECT * FROM images WHERE pid=? ",[pid],function(err,results,fields){
+    num=Object.keys(results).length;
+    var i=0;
+    response["num"]=num;
+    while(i<num)
+    {
+      path="src"+i;
+      response[path]=results[i].path;
+    }
+    res.send(JSON.stringify(response));
+  });
 });
 
 app.get('/logout',function(req,res){

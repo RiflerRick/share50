@@ -74,7 +74,7 @@ $.getJSON(url,function(data){
         document.getElementById("tourDiv").appendChild(element);
 
         var elementRow,elementCol,elementImage,heading,headingContent,inner,innerContent,buttonElement,buttonNode;
-        var dest,dateJ,dateR,description;
+        var dest,dateJ,dateR,description,tid;
         var i=0;
         for (var key in data)
         {
@@ -84,6 +84,8 @@ $.getJSON(url,function(data){
             elementRow.setAttribute("class","row");
             document.getElementById("tourDiv").appendChild(elementRow);
           }
+          if(key.substring(0,3).localeCompare("tid")==0)
+          tid=data[key];
           if(key.substring(0,4).localeCompare("dest")==0)
           {
             dest=data[key];
@@ -115,6 +117,7 @@ $.getJSON(url,function(data){
             innerContent=document.createTextNode("journey:"+dateJ+"; \n return:"+dateR+"\n "+description);
             buttonElement=document.createElement("a");
             buttonElement.setAttribute("class","btn btn-primary");
+            buttonElement.setAttribute("href","openTour?tid="+tid);
             buttonElement.setAttribute("role","button");
             buttonNode=document.createTextNode("Check out");
 
