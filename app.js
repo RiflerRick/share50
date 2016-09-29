@@ -164,6 +164,12 @@ app.get('/',function(req,res){
 
 app.get('/emailCheck',function(req,res){
   //this function is for ajax checking whether the email that was entered by the user actually exists
+
+  if(!(req.session&&req.session.email))//in every single get request that we send we are essentially have to check this
+  {
+      res.render('landing');
+  }
+  else{
   var jsonRes;
   console.log(chalk.blue("/emailCheck GET:ajax emailCheck request made."));//DEBUG
   var email=req.query.email;
@@ -183,7 +189,7 @@ app.get('/emailCheck',function(req,res){
           }
 
       });
-
+}
 });
 
 
@@ -211,6 +217,12 @@ app.get("/indexRequest",function(req,res){
 });
 
 app.get("/searchFriends",function(req,res){//ajax for searching friends
+
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else{
   var friend=req.query.friend;
   var userid=req.query.uid;
   console.log("/searchFriends GET:friend:"+friend);
@@ -251,10 +263,16 @@ app.get("/searchFriends",function(req,res){//ajax for searching friends
     }
 
   });
+}
 });
 
 app.post("/friendRequest",function(req,res){
 
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else{
   var uid=req.body.friendList;
   console.log(chalk.blue("/friendRequest GET:req.query.friendList returned:"+uid));
   var userid;
@@ -293,10 +311,16 @@ app.post("/friendRequest",function(req,res){
         }
       });
   });
-
+}
 });
 
 app.get("/checkFriendReq",function(req,res){
+
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else{
   connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
     var userid=results[0].uid;
     console.log("/checkFriendReq GET: user id of the user logged in is:"+userid);
@@ -314,15 +338,29 @@ app.get("/checkFriendReq",function(req,res){
       }
     });
   });
+  }
 });
 
 app.get("/friendRequestPage",function(req,res){
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else{
   var pageName="friendRequestPage";
   var uid=req.query.uid;
-  res.render("friendRequestPage",{page:pageName,uid:uid});
+  res.render("friendRequestPage",{page:pageName,uid:uid});}
 });
 
 app.get("/showFriendRequests",function(req,res){
+
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else{
+
+
   console.log(chalk.blue("/showFriendRequests GET:ajax request received"));
   var uid;
   // connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
@@ -354,11 +392,17 @@ app.get("/showFriendRequests",function(req,res){
       }
 
     });
-
+}
 });
 
 
 app.get("/acceptFriendRequest",function(req,res){
+
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else{
   console.log(chalk.blue("acceptFriendRequest GET:request sent to accept friend by email:"+req.query.email));
   connection.query("SELECT * FROM users WHERE email=?",[req.query.email],function(err,results,fields){
     var uid=results[0].uid;
@@ -377,6 +421,7 @@ app.get("/acceptFriendRequest",function(req,res){
     });
 
   });
+}
 })
 
 
@@ -430,6 +475,12 @@ app.post('/signIn',function(req,res){
 });
 
 app.post("/signInError",function(req,res){
+
+  if(!(req.session&&req.session.email))
+  {
+    res.render("landing");
+  }
+  else{
   var email=escape(req.query.email);
   var password=escape(req.body.password);
   connection.query("SELECT * FROM users WHERE email=?",[email],function(err,results,fields){
@@ -453,11 +504,12 @@ app.post("/signInError",function(req,res){
       }
     }
   });
-
+}
 });
 
 
 app.post('/signUp',function(req,res){
+
 
   console.log("/signUp POST:sign up request made");
   var userId;
@@ -540,6 +592,7 @@ app.post('/signUp',function(req,res){
 
 var storage=multer.diskStorage({destination:function(req,file,cb){
   //cb is callback
+
   cb(null,'public/images/acc/');
 },filename:function(req,file,cb){
   // console.log("inisde diskStorage callback, file obtained is :"+file.originalname);
@@ -693,6 +746,13 @@ app.get('/profile',function(req,res){
 });
 
 app.post("/profilePicUpload",upload.single('pic'),function(req,res){//upload.single(<fieldname>) fieldname is the name of the field from wehere we are trying to upload the file(form field name)
+  if(!(req.session&&req.session.email))
+  {
+      res.render('landing');
+  }
+  else {
+
+
   var pic=req.file;//this is an object that contains attributes like path that we can use for storing in the database
   // console.log("")
   // console.log("mime type currently is:"+pic.mimetype);
@@ -719,24 +779,30 @@ app.post("/profilePicUpload",upload.single('pic'),function(req,res){//upload.sin
 
     }
   });
+  }
 });
 
 app.get("/tours",function(req,res){
-
+  if(req.session&&req.session.email)
   helper.renderPage(app,fs,res,io,connection,'tours',param);
-
+  else {
+    res.render('landing');
+  }
 });
 
 
 
 app.get("/parties",function(req,res){
-
+  if(req.session.email&&req.session.email)
   helper.renderPage(app,fs,res,io,connection,'parties',param);
-
+  else {
+    res.render('landing');
+  }
 });
 
 
 function getDateToday(){//sync function
+
   var dateToday=new Date();//there is a class named Date in js that has getter functions to get the day, month and year
   var day=dateToday.getDate();
   var month=dateToday.getMonth()+1;//since jan is 0
@@ -754,6 +820,12 @@ return year+"-"+month+"-"+day;
 
 app.get("/dateSent",function(req,res){
   //this is actually gonna check from the database if the user has any party or tour scheduled
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   console.log(chalk.blue("/dateSent GET: ajax request recieved"));
   var day=req.query.day;
   var month=req.query.month;
@@ -776,13 +848,19 @@ app.get("/dateSent",function(req,res){
 
   });
 
-
+}
 });
 
 
 
 app.get('/friendList',function(req,res){
   //so according to the email of of the session that will be existing in the server the friendlist of the person will be prepared and sent
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err,results,fields){
     var id=results[0].uid;
     connection.query("SELECT users.uid,users.email,users.name FROM friends INNER JOIN users ON (friends.uid=users.uid OR friends.fuid=users.uid) WHERE (friends.uid=? OR friends.fuid=?) AND friends.isAccepted=1",[id,id],function(err,results,fields){
@@ -811,12 +889,19 @@ app.get('/friendList',function(req,res){
       res.send(JSON.stringify(friendList));
     });
   });
+}
 });
 
 
 app.post('/partiesCreate',function(req,res){
   //partiesCreate is a get request originated from tours.ejs page.
   //so the following are the informations that we receive: destination, leaving, return, description and a bunch of emails.
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   var destination=req.body.destination;
   var leavingDate=req.body.leaving;
   var returnDate=req.body.return;
@@ -872,9 +957,16 @@ app.post('/partiesCreate',function(req,res){
 
     var pageName="PartyCreated";
     res.render('partyCreated',{page:pageName});
-
+    }
   });
 app.post('/toursCreate',function(req,res){
+
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
 
   var destination=req.body.destination;
   console.log(chalk.blue("destination accepted:"+destination));
@@ -929,6 +1021,7 @@ console.log(chalk.blue("leaving date accepted:"+leavingDate));
     });
     var pageName="tourCreated";
     res.render('tourCreated',{page:pageName});
+  }
 });
 
 app.get('/myTours',function(req,res){
@@ -936,19 +1029,37 @@ app.get('/myTours',function(req,res){
   my tours page is basically there for the purpose of showing all the tours that the person has undertaken just that, from there
   in case the person wants to check those tours, he has to actually go there.
   */
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   var pageName="My Tours";
-  res.render('myTours',{page:pageName});
+  res.render('myTours',{page:pageName});}
 });
 
 app.get('/myParties',function(req,res){
   /*
   my parties is basically there for the purpose of showing all the parties.
   */
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   var pageName="My Parties";
-  res.render('myParties',{page:pageName});
+  res.render('myParties',{page:pageName});}
 });
 
 app.get('/checkMyTours',function(req,res){
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   var uid=req.session.uid;
   console.log("/checkMyTours: uid returned from session object:"+uid);
   //first we need to tell the user if there are any tours to which he is invited
@@ -1038,10 +1149,16 @@ app.get('/checkMyTours',function(req,res){
     });
   });
   });
-
+}
 });
 
 app.get('/checkMyParties',function(req,res){
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   var uid=req.session.uid;
   var response={};
 
@@ -1119,10 +1236,17 @@ app.get('/checkMyParties',function(req,res){
   });
 
   });
+}
 });
 
 app.get('/acceptTourRequest',function(req,res){
 //this is gonna render a page called acceptTourRequest
+if(!(req.session&&req.session.email))
+{
+  res.render('landing');
+}
+else {
+
 console.log(chalk.blue("acceptTourRequest get: inside function"));
 //it may be possible that the corresponding tour has expired and hence there is no point of keeping that request, in which
 //case the user will be alerted of the same.
@@ -1156,10 +1280,16 @@ else {
   var displayTour="block;";
 }
 res.render("acceptTourRequest",{page:pageName,displayOver:displayOver,displayTour:displayTour,destination:destination,description:description,dateOfJourney:dateOfJourney,dateOfReturn:dateOfReturn,uid:uid,comId:comId,tid:tid})
-});
+});}
 });
 
 app.get('/acceptPartyRequest',function(req,res){
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   console.log(chalk.blue("acceptPartyRequest get: inside function"));
   var requestUid=req.query.uid;//this is the uid of the guy who has sent the request.
   var uid=req.session.uid;
@@ -1190,12 +1320,19 @@ app.get('/acceptPartyRequest',function(req,res){
   }
   res.render("acceptPartyRequest",{page:pageName,displayOver:displayOver,displayParty:displayParty,destination:destination,description:description,dateOfJourney:dateOfJourney,dateOfReturn:dateOfReturn,uid:uid,visitorId:visitorId,pid:pid})
   });
+}
 });
 
 app.get('/tourAccepted',function(req,res){
 //here u get as query uid,comId and tid
 //simply we update the database of companion here where we just uodate the column of isAccepted to 1
 //also we make a tour for that person
+if(!(req.session&&req.session.email))
+{
+  res.render('landing');
+}
+else {
+
 console.log(chalk.blue("/tourAccepted get: inside function"));
 var uid=req.query.uid;
 var comId=req.query.comId;//this is the same as req.session.uid;
@@ -1212,10 +1349,17 @@ connection.query("UPDATE companion SET isAccepted=1 WHERE (uid=? AND comId=? AND
 
 var pageName="tour Accepted";
 res.render("tourAcceptedNotify",{page:pageName});
+}
 });
 
 app.get('/partyAccepted',function(req,res){
   //here u get as query uid, visitorId and pid
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   console.log(chalk.blue("/partyAccepted get: inside function"));
   var uid=req.query.uid;
   var visitorId=req.query.visitorId;
@@ -1231,11 +1375,18 @@ app.get('/partyAccepted',function(req,res){
   });
   var pageName="party Accepted";
   res.render('partyAcceptedNotify',{page:pageName});
+}
 });
 
 var tourId;
 
 app.get('/openTour',function(req,res){
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   var tid=req.query.tid;
   tourId=tid;//this is for refernce in the ajax request handling function
   //so on opening this page the user actually gets to see the photos of the tour and also if the tour is live he gets to upload the photo.
@@ -1265,12 +1416,18 @@ app.get('/openTour',function(req,res){
     res.render('openTour',{page:pageName,live:response,tid:tid});
 
   });
-
+}
 });
 
 var partyId;
 
 app.get('/openParty',function(req,res){
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   var pid=req.query.pid;
   partyId=pid;
   connection.query("SELECT * FROM party WHERE pid=?",[pid],function(err,results,fields){
@@ -1289,6 +1446,7 @@ app.get('/openParty',function(req,res){
     res.render('openParty',{page:pageName,live:response,pid:pid});
 
   });
+}
 });
 
 function isTourLive(start,end)
@@ -1362,6 +1520,12 @@ app.post("/profilePicUpload",upload.single('pic'),function(req,res){//upload.sin
 
 app.post('/picUploadTour',uploadImageTours.single('file'),function(req,res){//here file is the fieldname
 //handling pic uploads
+if(!(req.session&&req.session.email))
+{
+  res.render('landing');
+}
+else {
+
 var tid=tourId;
 var image=req.file;//current name of the file.
 var type=req.file.mimetype;
@@ -1399,12 +1563,19 @@ else {
   var pageName="Error uploading file";
   res.render('imageUploadError',{page:pageName});
 }
+}
 
 
 });
 
 app.post('/picUploadParty',uploadImageParties.single('file'),function(req,res){
 //handling pic uploads
+if(!(req.session&&req.session.email))
+{
+  res.render('landing');
+}
+else {
+
 var pid=partyId;
 var image=req.file;//current name of the file.
 var type=req.file.mimetype;
@@ -1442,12 +1613,18 @@ else {
   var pageName="Error uploading file";
   res.render('imageUploadError',{page:pageName});
 }
-
+}
 
 });
 
 app.get('/openTourCheckPics',function(req,res){
 //handling ajax request from openTour
+if(!(req.session&&req.session.email))
+{
+  res.render('landing');
+}
+else {
+
   var tid=tourId;
   var path,num;
   var response={};
@@ -1469,10 +1646,17 @@ app.get('/openTourCheckPics',function(req,res){
     }
     res.send(JSON.stringify(response));
   });
+}
 });
 
 app.get('/openPartyCheckPics',function(req,res){
   //handling ajax request from openParty
+  if(!(req.session&&req.session.email))
+  {
+    res.render('landing');
+  }
+  else {
+
   var pid=partyId;
   var path,num;
   var response={};
@@ -1488,6 +1672,7 @@ app.get('/openPartyCheckPics',function(req,res){
     }
     res.send(JSON.stringify(response));
   });
+}
 });
 
 app.get('/logout',function(req,res){
