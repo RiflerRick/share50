@@ -572,8 +572,9 @@ var imageStorageTours=multer.diskStorage({
     var images=0;
     var name;
     connection.query("SELECT * FROM userimages WHERE uid=?",[uid],function(err,results,fields){
+      console.log(chalk.blue("inside imageStorageTours: the noOfImages returned is:"+results[0].noOfImages));
       images=results[0].noOfImages+1;
-      name=uid.toString()+images.toString();
+      name=uid.toString()+images.toString()+"."+mime.extension(file.mimetype);
       cb(null,name);
     });
   }
@@ -1364,6 +1365,7 @@ app.post('/picUploadTour',uploadImageTours.single('file'),function(req,res){//he
 var tid=tourId;
 var image=req.file;//current name of the file.
 var type=req.file.mimetype;
+var noOfImages=0;
 if(image==undefined)
 {
   var pageName="undefined Image";
@@ -1372,16 +1374,26 @@ if(image==undefined)
 }
 if((type.localeCompare("image/jpg")==0)||(type.localeCompare('image/jpeg')==0)||(type.localeCompare('image/png')==0))
 {
-  connection.query("INSERT INTO images (uid,path,tid) VALUES (?,?,?)",[req.session.uid,req.file.filename,tid],function(errNew,resultsNew,fieldsNew){
-      if(errNew)
-      {
-        console.log(chalk.red("error inserting into images table"+err.stack));
-      }
-      else {
-        console.log(chalk.green("successfully inserted into images table"));
-      }
+  connection.query("UPDATE userimages SET noOfImages=(noOfImages+1) WHERE uid=?",[req.session.uid],function(err,results,fields){
+    if(err)
+    {
+      console.log(chalk.red("failed to update table userimages"));
+    }
 
-    });
+  });
+
+    connection.query("INSERT INTO images (uid,path,tid) VALUES (?,?,?)",[req.session.uid,req.file.filename,tid],function(errNew,resultsNew,fieldsNew){
+        if(errNew)
+        {
+          console.log(chalk.red("error inserting into images table"+err.stack));
+        }
+        else {
+          console.log(chalk.green("successfully inserted into images table"));
+        }
+
+      });
+
+
 }
 else {
   var pageName="Error uploading file";
