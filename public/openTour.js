@@ -1,5 +1,5 @@
 document.body.onload=function(){
-  // alert('ajax check'+hello);
+  // alert('ajax check');
 var url="openTourCheckPics";
 $.getJSON(url,function(data){
   //data is obviously the response
@@ -15,7 +15,7 @@ $.getJSON(url,function(data){
     {
       if(key.substring(0,3).localeCompare("src")==0)
       {
-        if(i%4==0)
+        if(i%2==0)
         {
           rowElement=document.createElement("div");
           rowElement.setAttribute("class","row");
@@ -23,28 +23,31 @@ $.getJSON(url,function(data){
         }
 
         colElement=document.createElement("div");
-        colElement.setAttribute("class","col-xs-6 col-md-3");
+        colElement.setAttribute("class","col-xs-6 col-md-6");
         link=document.createElement("a");
-        link.setAttribute("href","#");
-        link.setAttribute("class","thumbnail");
+        link.setAttribute("href","");
         image=document.createElement("img");
+        image.style.width="300px";
+        image.style.height="200px";
         image.setAttribute("src",data[key]);
         image.setAttribute("alt","image");
 
         //now the linking
-        link.appendChild(image);
-        colElement.appendChild(link);
+        colElement.appendChild(image);
         rowElement.appendChild(colElement);
+
         i++;
       }
 
     }
+    // document.getElementByTagName("img").style.width="200px";
+    // document.getElementByTagName("img").style.height="150px";
   }
   else {
     var element=document.createElement("div");
     element.setAttribute("class","alert alert-warning");
     var strongElement=document.createElement("strong");
-    var strongNode=document,createTextNode("Upload images and share with friends");
+    var strongNode=document.createTextNode("Upload images and share with friends");
     strongElement.appendChild(strongNode);
     element.appendChild(strongElement);
     document.getElementById("wellContent").appendChild(element);

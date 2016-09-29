@@ -21,17 +21,15 @@ $.getJSON(url,function(data){
           document.getElementById("wellContent").appendChild(rowElement);
         }
         colElement=document.createElement("div");
-        colElement.setAttribute("class","col-xs-6 col-md-3");
-        link=document.createElement("a");
-        link.setAttribute("href","#");
-        link.setAttribute("class","thumbnail");
+        colElement.setAttribute("class","col-xs-6 col-md-6");
         image=document.createElement("img");
         image.setAttribute("src",data[key]);
+        image.style.width="300px";
+        image.style.height="200px";
         image.setAttribute("alt","image");
 
         //now the linking
-        link.appendChild(image);
-        colElement.appendChild(link);
+        colElement.appendChild(image);
         rowElement.appendChild(colElement);
         i++;
       }
@@ -41,7 +39,7 @@ $.getJSON(url,function(data){
     var element=document.createElement("div");
     element.setAttribute("class","alert alert-warning");
     var strongElement=document.createElement("strong");
-    var strongNode=document,createTextNode("Upload images and share with friends");
+    var strongNode=document.createTextNode("Upload images and share with friends");
     strongElement.appendChild(strongNode);
     element.appendChild(strongElement);
     document.getElementById("wellContent").appendChild(element);

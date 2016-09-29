@@ -1,5 +1,7 @@
 document.body.onload=function(){
 
+// alert("this page seems to be working");
+
 var url="checkMyTours";
 $.getJSON(url,function(data){
 

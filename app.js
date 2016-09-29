@@ -593,7 +593,7 @@ var imageStorageParties=multer.diskStorage({
     var name;
     connection.query("SELECT * FROM userimages WHERE uid=?",[uid],function(err,results,fields){
       images=results[0].noOfImages+1;
-      name=uid.toString()+images.toString();
+      name=uid.toString()+images.toString()+"."+mime.extension(file.mimetype);
       cb(null,name);
     });
   }
@@ -1403,36 +1403,47 @@ else {
 
 });
 
-app.post('picUploadParty',function(req,res){
+app.post('/picUploadParty',uploadImageParties.single('file'),function(req,res){
 //handling pic uploads
-var pid=pidId;
-var fileName=req.file.displayImage.name;//current name of the file.
-
-var imageNumber;
-var type=req.file.displayImage.type;
+var pid=partyId;
+var image=req.file;//current name of the file.
+var type=req.file.mimetype;
+var noOfImages=0;
+if(image==undefined)
+{
+  var pageName="undefined Image";
+  console.log("undefined file  and hence this msg");
+  // res.render('undefinedImage',{pageLpageName});
+}
 if((type.localeCompare("image/jpg")==0)||(type.localeCompare('image/jpeg')==0)||(type.localeCompare('image/png')==0))
 {
+  connection.query("UPDATE userimages SET noOfImages=(noOfImages+1) WHERE uid=?",[req.session.uid],function(err,results,fields){
+    if(err)
+    {
+      console.log(chalk.red("failed to update table userimages"));
+    }
+
+  });
+
+    connection.query("INSERT INTO images (uid,path,pid) VALUES (?,?,?)",[req.session.uid,req.file.filename,pid],function(errNew,resultsNew,fieldsNew){
+        if(errNew)
+        {
+          console.log(chalk.red("error inserting into images table"+err.stack));
+        }
+        else {
+          console.log(chalk.green("successfully inserted into images table"));
+        }
+
+      });
+
+
+}
+else {
   var pageName="Error uploading file";
   res.render('imageUploadError',{page:pageName});
 }
-connection.query("SELECT * FROM userimages WHERE uid=?",[req.session.uid],function(err,results,fields){
-  imageNumber=results[0].noOfImages;
-  fileName=fileName+req.session.uid.toString()+(imageNumber+1).toString();//in this way the names of the files will never be the same
-  connection.query("INSERT INTO images (uid,path,tid,pid) VALUES (?,?,?,?)",[req.session.uid,fileName,NULL,pid],function(errNew,resultsNew,fieldsNew){
-    if(errNew)
-    {
-      console.log(chalk.red("error inserting into images table"+err.stack));
-    }
-    else {
-      console.log(chalk.green("successfully inserted into images table"));
-    }
-    connection.query("UPDATE userimages SET noOfImages=? WHERE uid=?",[imageNumber+1,req.session.uid],function(err1,results1,fields1){
 
-    });
-  });
 
-});
-//now comes the real uploading deal
 });
 
 app.get('/openTourCheckPics',function(req,res){
@@ -1440,14 +1451,21 @@ app.get('/openTourCheckPics',function(req,res){
   var tid=tourId;
   var path,num;
   var response={};
+  console.log(chalk.blue("/openTourCheckPics get: tid now is:"+tid));
   connection.query("SELECT * FROM images WHERE tid=? ",[tid],function(err,results,fields){
+    if(err)
+    {
+      console.log(chalk.red("error in retrieving from table images"+err.stack));
+    }
     num=Object.keys(results).length;
+    console.log("num returned is:"+num);
     var i=0;
     response["num"]=num;
     while(i<num)
     {
       path="src"+i;
-      response[path]=results[i].path;
+      response[path]="images/tours/"+results[i].path;
+      i++;
     }
     res.send(JSON.stringify(response));
   });
@@ -1465,7 +1483,8 @@ app.get('/openPartyCheckPics',function(req,res){
     while(i<num)
     {
       path="src"+i;
-      response[path]=results[i].path;
+      response[path]="images/parties/"+results[i].path;
+      i++;
     }
     res.send(JSON.stringify(response));
   });
