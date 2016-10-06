@@ -133,24 +133,24 @@ function dateOfReturnValidation(){
   // alert("date of return:"+document.getElementById("dateOfReturn").value);
   var dor=document.getElementById("dateOfReturn").value;
   var dol=document.getElementById("dateOfLeaving").value;
-  if(parseInt(dor.substring(0,4))<parseInt(dol.substring(0,4)))
+  if(parseInt(dor.substring(0,4))>parseInt(dol.substring(0,4)))
   {
-    // alert("invalid year");
-    invalidDate("dor");
-  }
-  else if(parseInt(dor.substring(5,7))<parseInt(dol.substring(5,7)))
-  {
-    // alert("invalid month");
-    invalidDate("dor");
-  }
-  else if(parseInt(dor.substring(8))<parseInt(dol.substring(8)))
-  {
-    // alert("invalid date");
-    invalidDate("dor");
-  }
-  else {
     hideAlert("dor");
     validDOR=1;
+  }
+  else if((parseInt(dor.substring(0,4))==parseInt(dol.substring(0,4)))&&(parseInt(dor.substring(5,7))>parseInt(dol.substring(5,7))))
+  {
+    hideAlert("dor");
+    validDOR=1;
+
+  }
+  else if((parseInt(dor.substring(5,7))==parseInt(dol.substring(5,7)))&&(parseInt(dor.substring(8))>=parseInt(dol.substring(8))))
+  {
+    hideAlert("dor");
+    validDOR=1;
+  }
+  else {
+    invalidDate("dor");
   }
 }
 function dateOfLeavingValidation()
@@ -163,26 +163,26 @@ function dateOfLeavingValidation()
   var month=d.getMonth()+1;
   // alert("date:"+date+",month:"+month+",year:"+year);
   // alert("date entered:"+parseInt(dol.substring(8))+",month entered:"+parseInt(dol.substring(5,7))+",year entered:"+parseInt(dol.substring(0,4)));
-  if(parseInt(dol.substring(0,4))<year)
+  if(parseInt(dol.substring(0,4))>year)
   {
-    // alert("seems year is not correct");
-
-    invalidDate("dol");
-
-  }
-  else if(parseInt(dol.substring(5,7))<month)
-  {
-    invalidDate("dol");
-
-  }
-  else if(parseInt(dol.substring(8))<date)
-  {
-    invalidDate("dol");
-  }
-  else {
-    // alert("cool");
     hideAlert("dol");
     validDOL=1;
+  }
+  else if((parseInt(dol.substring(0,4))==year)&&(parseInt(dol.substring(5,7))>month))
+  {
+    hideAlert("dol");
+    validDOL=1;
+  }
+  else if((parseInt(dol.substring(5,7))==month)&&(parseInt(dol.substring(8))>=date))
+  {
+    hideAlert("dol");
+    validDOL=1;
+
+  }
+
+  else {
+    // alert("cool");
+    invalidDate("dol");
   }
 
 
