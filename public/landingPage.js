@@ -3,6 +3,10 @@ var lName=document.getElementById("lastName");
 var email=document.getElementById("emailAddress");
 var pass=document.getElementById("password");
 
+document.body.onload=function(){
+
+
+
 document.getElementById("usernameModal").onblur=function(){
   var signInEmailCheck=0;
   var url="emailCheck?email="+document.getElementById('usernameModal').value;
@@ -16,7 +20,8 @@ document.getElementById("usernameModal").onblur=function(){
     //alert("json rec: "+data.emailFound);
     if(data.emailFound==0)
     {
-      //alert("voila!!!exists"); error checking...
+      //alert("voila!!! does not exist"); //error checking...
+
       var email=document.getElementById("usernameModal");
       email.setAttribute("data-toggle","tooltip");
       email.setAttribute("data-placement","right");
@@ -31,6 +36,20 @@ document.getElementById("usernameModal").onblur=function(){
   });
 };
 
+/*function onLogIn()
+{
+  alert("inside login function... signInEmailCheck is:"+signInEmailCheck);
+  if(signInEmailCheck==1)
+  {
+    alert("signInEmailCheck is one");
+    document.getElementById("signInForm").submit();//submits the form...
+  }
+  else {
+      alert("ok it works");
+  }
+
+}*/
+
 document.getElementById("usernameModal").onfocus=function(){
   $('#usernameModal').tooltip('destroy');
   var email=document.getElementById("usernameModal");
@@ -39,13 +58,6 @@ document.getElementById("usernameModal").onfocus=function(){
   email.removeAttribute("title");
 };
 
-document.getElementById("logIn").onclick=function(){
-  if(signInEmailCheck==1)
-  {
-    document.getElementById("signInForm").submit();//submits the form...
-  }
-  return false;
-};
 
 document.getElementById("signUpLink").onclick=function(){
   //lamda function style of js
@@ -280,4 +292,5 @@ document.getElementById("signUpButton").onclick=function(){
   }
 
   return false;
+};
 };

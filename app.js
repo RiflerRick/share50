@@ -165,11 +165,6 @@ app.get('/',function(req,res){
 app.get('/emailCheck',function(req,res){
   //this function is for ajax checking whether the email that was entered by the user actually exists
 
-  if(!(req.session&&req.session.email))//in every single get request that we send we are essentially have to check this
-  {
-      res.render('landing');
-  }
-  else{
   var jsonRes;
   console.log(chalk.blue("/emailCheck GET:ajax emailCheck request made."));//DEBUG
   var email=req.query.email;
@@ -189,7 +184,7 @@ app.get('/emailCheck',function(req,res){
           }
 
       });
-}
+
 });
 
 
@@ -435,12 +430,17 @@ app.post('/signIn',function(req,res){
   {
     console.log(chalk.blue("/signIn POST:session exists"));//DEBUG
     connection.query("SELECT * FROM users WHERE email=?",[req.session.email],function(err, results,fields){
-      userId=results[0].uid;
-      // console.log("/signIn GET:user id returned is"+userId);
-      param=setParam(req.session.email,userId);
-      helper.renderPage(app,fs,res,io,connection,'index',param)
+
+
+        userId=results[0].uid;
+
+        // console.log("/signIn GET:user id returned is"+userId);
+        param=setParam(req.session.email,userId);
+        helper.renderPage(app,fs,res,io,connection,'index',param);
+
+
     });
-    ;
+
   }
   else {
     console.log(chalk.blue("/signIn POST:session does not exist"));//DEBUG
@@ -454,19 +454,28 @@ app.post('/signIn',function(req,res){
         console.log(chalk.red("/signIn POST:could not run query:"+err.stack));//DEBUG
       }
       else {
-        console.log(chalk.green("/signIn POST:query successful"));//DEBUG
-        if(passHash.verify(password,results[0].password))
+        if(Object.keys(results).length==0)
         {
-          //start a session and render index page
-          console.log(chalk.green("/signIn POST:login successful, session started"));//DEBUG
-          param=startSession(req,email,results[0].uid);//custom function
-          helper.renderPage(app,fs,res,io,connection,'index',param);
+          //so the only way is if the email is incorrect...
+          var pageName="emailNotFound";
+          res.render('emailNotFound',{page:pageName});
         }
         else {
-          console.log(chalk.red("/signIn POST:login unsuccessful, rendered loginError page"));//DEBUG
+          console.log(chalk.green("/signIn POST:query successful"));//DEBUG
+          if(passHash.verify(password,results[0].password))
+          {
+            //start a session and render index page
+            console.log(chalk.green("/signIn POST:login successful, session started"));//DEBUG
+            param=startSession(req,email,results[0].uid);//custom function
+            helper.renderPage(app,fs,res,io,connection,'index',param);
+          }
+          else {
+            console.log(chalk.red("/signIn POST:login unsuccessful, rendered loginError page"));//DEBUG
 
-          res.render('loginError',{email:email});//render a page called log in error
+            res.render('loginError',{email:email});//render a page called log in error
+          }
         }
+
       }
     });
   }
@@ -475,12 +484,6 @@ app.post('/signIn',function(req,res){
 });
 
 app.post("/signInError",function(req,res){
-
-  if(!(req.session&&req.session.email))
-  {
-    res.render("landing");
-  }
-  else{
   var email=escape(req.query.email);
   var password=escape(req.body.password);
   connection.query("SELECT * FROM users WHERE email=?",[email],function(err,results,fields){
@@ -504,7 +507,7 @@ app.post("/signInError",function(req,res){
       }
     }
   });
-}
+
 });
 
 
@@ -667,7 +670,7 @@ app.get('/profile',function(req,res){
         param["name"]=results[0].name;
         // console.log("inside profile now object is:"+param.name);
         param["email"]=results[0].email;
-        param["dob"]=results[0].dob;
+        param["dob"]=results[0].dob.toString().substring(0,15);
         if(results[0].profilePicPath==null)
         {
           param["profileSrc"]="images/acc/emoticonNoFace.png";
