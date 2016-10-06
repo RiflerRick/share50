@@ -550,6 +550,10 @@ app.post('/signUp',function(req,res){
         var dob=year.toString()+"-"+month.toString()+"-"+date.toString();
         //from reading the documentation of mysql i know that date accpets yyyy-mm-dd as a string
         var gender=req.body.gender;
+        if(gender==undefined)
+        {
+          gender=1;
+        }
         var password;
         var rawPass=req.body.checkPass;
         // console.log("email is: "+email);

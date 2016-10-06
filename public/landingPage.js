@@ -36,7 +36,7 @@ document.getElementById("usernameModal").onblur=function(){
   });
 };
 
-/*function onLogIn()
+function onLogIn()
 {
   alert("inside login function... signInEmailCheck is:"+signInEmailCheck);
   if(signInEmailCheck==1)
@@ -48,7 +48,7 @@ document.getElementById("usernameModal").onblur=function(){
       alert("ok it works");
   }
 
-}*/
+}
 
 document.getElementById("usernameModal").onfocus=function(){
   $('#usernameModal').tooltip('destroy');
