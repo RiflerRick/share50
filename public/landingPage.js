@@ -112,7 +112,7 @@ function attrRem(element)
 {
   alert("hello");
 }*/
-/*function dobGen()
+function dobGen()
 {
   var i=1;
   while(i<=31)
@@ -135,7 +135,7 @@ function attrRem(element)
     i++;
   }
 
-
+}
 // }*/
 var firstNameCheck=0;//check variables that are set to 1 if the user has cooperated...
 var lastNameCheck=0;
