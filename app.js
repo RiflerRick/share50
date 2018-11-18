@@ -1,3 +1,4 @@
+"use strict";
 /*
 This is the controller that actually has the entry point code of project.In any express application, there are basically three main files in the
 directory, the first one is called the app.js which contains the code for the entry point(routing and so on) of the application and project, the node
@@ -29,11 +30,19 @@ var server=app.listen(1337,function(){
 var io=require('socket.io').listen(server);//this is essentially gonna be the socket.io library that we are gonna use for real time form feed
 //listen to the same server for the web socket connection
 
-var connection=mysql.createConnection({
-  host:'localhost',
-  user:'riflerRick',
-  password:'share50_123',
-  database:'share50'
+// TODO: use sequelize library instead for interacting with the database. use replication server support in sequelize
+// TODO: use winston logger with morgan
+// TODO: use node-cache
+// TODO:
+
+const settings_path = process.env.APP_SETTINGS || path.join(__dirname, "conf.json");
+const settings = require(settings_path).settings;
+
+var connection = mysql.createConnection({
+    host: settings.MYSQL_HOST,
+    user: settings.MYSQL_USER,
+    password: settings.MYSQL_PASSWORD,
+    database: settings.MYSQL_DB
 });
 
 connection.connect(function(err){
@@ -170,7 +179,11 @@ app.get('/emailCheck',function(req,res){
   var email=req.query.email;
 
       connection.query('SELECT * FROM users WHERE email=?',[email],function(err,results,fields){
-        if(Object.keys(results).length>0){
+        if(err){
+          res.send(JSON.stringify({emailFound:0}));
+          console.log(chalk.red("oops, something went wrong", err));//DEBUG
+        }
+        else if(Object.keys(results).length>0){
           //turns out that results is an object that has key value pairs here.
 
           res.send(JSON.stringify({emailFound:1}));//send a json response
